@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { FaInstagram, FaSms, FaRegEnvelope, FaLinkedin, FaWhatsapp } from "react-icons/fa";
 import Image from "next/image";
 import Link from "next/link";
+import Footer from "@/components/client/layout/footer";
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
+    <div className="w-full overflow-hidden font-sans grid grid-rows-1 items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <header className="row-start-1 flex gap-[24px] flex-wrap items-center justify-center">
         <Image
           className="dark:invert"
@@ -84,75 +85,7 @@ export default function Home() {
       </main>
 
       {/* footer */}
-      <footer className="overflow-hidden row-start-3 flex flex-col gap-2 flex-wrap items-center justify-center text-xs">
-        {/* Social Media & Copyright */}
-        <div className="flex gap-2 items-center flex-col">
-          <div className="flex gap-1 flex-wrap items-center">
-            <Link 
-              href="mailto:info@fgmi.or.id"
-              className="flex items-center justify-center gap-2 p-0"
-            >
-              <Button
-                variant='link'
-                className="flex items-center gap-2 hover:cursor-pointer p-0 !px-1"
-              >
-                <FaRegEnvelope className="h-5 w-5 px-0" />
-              </Button>
-            </Link>
-            <Link 
-              href="https://instagram.com/fgmindo"
-              className="flex items-center justify-center gap-2"
-            >
-              <Button
-                variant='link'
-                className="flex items-center gap-2 hover:cursor-pointer p-0 !px-1"
-              >
-                <FaInstagram className="h-5 w-5 px-0" />
-              </Button>
-            </Link>
-            <Link 
-              href="https://www.linkedin.com/company/forum-geosaintis-muda-indonesia/"
-              className="flex items-center justify-center gap-2"
-            >
-              <Button
-                variant='link'
-                className="flex items-center gap-2 hover:cursor-pointer p-0 !px-1"
-              >
-                <FaLinkedin className="h-5 w-5 px-0" />
-              </Button>
-            </Link>
-            <Link 
-              href="https://wa.me/6282114563860"
-              className="flex items-center justify-center gap-2"
-            >
-              <Button
-                variant='link'
-                className="flex items-center gap-2 hover:cursor-pointer p-0 !px-1"
-              >
-                <FaWhatsapp className="h-5 w-5 px-0" />
-              </Button>
-            </Link>
-          </div>
-          <div className="font-normal text-center leading-snug font-sans text-ellipsis">
-            Copyright © 2025 Indonesian Young Geoscientists Forum. All rights reserved.
-          </div>
-        </div>
-
-        {/* Address */}
-        <Link 
-          className="flex items-center justify-center gap-2"
-          target="_blank"
-          rel="noopener noreferrer"
-          href="https://maps.app.goo.gl/jjCpYFbpJxA7WR7x7"
-          >
-            <Button 
-              variant='link'
-              className="flex items-center gap-2 hover:cursor-pointer hover:no-underline p-0 !px-1 text-center text-inherit text-xs font-normal text-ellipsis"
-            >
-              SOHO Pancoran Tower Splendor – Lt.18 Unit 1817, Tebet Barat, Pancoran, Jakarta Selatan, DKI Jakarta 12810
-            </Button>
-          </Link>
-      </footer>
+      <Footer />
     </div>
   );
 }

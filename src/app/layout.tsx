@@ -9,7 +9,7 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  title: "FGMI Kolaborasi Apps",
+  title: "FGMI Kolaborasi",
   description: "Forum Geosaintis Muda Indonesia - Kolaborasi",
 };
 
