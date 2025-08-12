@@ -97,7 +97,7 @@ const SelectSingle = <TValue,>({
         <div className={cn('flex flex-col gap-1.5', className)}>
           {!!button?.label && (
             <Label
-              className={cn(!disabled && 'text-muted')}
+              className={cn(disabled && 'text-muted')}
               htmlFor={usedId}
             >
               {button?.label}
@@ -227,7 +227,7 @@ const SelectSingle = <TValue,>({
                     >
                       <Check
                         className={cn(
-                          'mr-2 h-4 w-4',
+                          'mr-2 h-4 w-4 text-inherit',
                           value === option.value ? 'opacity-100' : 'opacity-0'
                         )}
                       />

@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import { Quicksand } from "next/font/google";
+import { Quicksand, Geist_Mono, Rubik } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const quicksand = Quicksand({
   variable: "--font-quicksand",
+  subsets: ["latin"],
+});
+
+const rubik = Rubik({
+  variable: "--font-rubik",
   subsets: ["latin"],
 });
 
@@ -22,7 +27,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <>
       <html lang="en" suppressHydrationWarning>
         <head />
-        <body className={`${quicksand.variable} antialiased`}>
+        <body className={`${quicksand.variable} ${rubik.variable} antialiased`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="light"
