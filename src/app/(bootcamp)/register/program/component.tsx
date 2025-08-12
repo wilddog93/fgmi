@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { Alert } from "@/components/ui/alert"
 import TextField from "@/components/client/molecule/textfield"
 import SelectSingle from "@/components/client/molecule/select-single"
+import Link from "next/link"
 
 interface FormData {
   fullName: string
@@ -50,6 +51,7 @@ export default function BootcampRegistration() {
   })
   const [isProcessing, setIsProcessing] = useState(false)
   const [showPayment, setShowPayment] = useState(false)
+  const [paymentLink, setPaymentLink] = useState<string>("")
 
   const selectedBootcamp = bootcampOptions.find((b) => b.id === formData.bootcamp)
 
@@ -76,7 +78,7 @@ export default function BootcampRegistration() {
 
   //   try {
   //     // Create transaction token from backend
-  //     const response = await fetch("/api/payment/create-token", {
+  //     const response = await fetch("/api/payment", {
   //       method: "POST",
   //       headers: {
   //         "Content-Type": "application/json",
@@ -110,7 +112,7 @@ export default function BootcampRegistration() {
   //     script.src = "https://app.sandbox.midtrans.com/snap/snap.js"
   //     script.setAttribute(
   //       "data-client-key",
-  //       process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "SB-Mid-client-YOUR_CLIENT_KEY",
+  //       process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY!,
   //     )
   //     script.onload = () => {
   //       // @ts-expect-error : Type 'Window' is not assignable to type 'Snap'
@@ -148,90 +150,106 @@ export default function BootcampRegistration() {
   // }
 
   const handlePayment = async () => {
-  if (!selectedBootcamp) return;
-  setIsProcessing(true);
+    if (!selectedBootcamp) return;
+    setIsProcessing(true);
 
-  try {
-    const response = await fetch("/api/payment/create-token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId: `BOOTCAMP-${Date.now()}`,
-        grossAmount: selectedBootcamp.price,
-        customerDetails: {
-          fullName: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-        },
-        itemDetails: [
-          {
-            id: selectedBootcamp.id,
-            price: selectedBootcamp.price,
-            quantity: 1,
-            name: selectedBootcamp.name,
+    try {
+      const response = await fetch("/api/payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: `BOOTCAMP-${Date.now()}`,
+          grossAmount: selectedBootcamp.price,
+          customerDetails: {
+            fullName: formData.fullName,
+            email: formData.email,
+            phone: formData.phone,
           },
-        ],
-      }),
-    });
+          itemDetails: [
+            {
+              id: selectedBootcamp.id,
+              price: selectedBootcamp.price,
+              quantity: 1,
+              name: selectedBootcamp.name,
+            },
+          ],
+        }),
+      });
 
-    // if (!response.ok) {
-    //   const errData = await response.json();
-    //   throw new Error(errData.error || "Gagal membuat transaksi");
-    // }
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`API Error: ${text}`);
-    }
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`API Error: ${text}`);
+      }
 
-    const { token } = await response.json();
+      const { token } = await response.json();
 
-    setShowPayment(true);
+      setShowPayment(true);
 
-    if (!document.querySelector("#snap-script")) {
-      const script = document.createElement("script");
-      script.id = "snap-script";
-      script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
-      script.setAttribute(
-        "data-client-key",
-        process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY!
-      );
-      document.body.appendChild(script);
-      script.onload = () => {
+      if (!document.querySelector("#snap-script")) {
+        const script = document.createElement("script");
+        script.id = "snap-script";
+        script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+        script.setAttribute(
+          "data-client-key",
+          process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY!
+        );
+        document.body.appendChild(script);
+        script.onload = () => {
+          // @ts-expect-error : Type 'Window' is not assignable to type 'Snap'.
+          window.snap.embed(token, { 
+            embedId: "snap-container",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onSuccess: (result: any) => {
+              alert("Pembayaran berhasil! Selamat datang di bootcamp!")
+              console.log(result)
+              setShowPayment(false)
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onPending: (result: any) => {
+              alert("Menunggu pembayaran Anda...")
+              console.log(result)
+            },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onError: (result: any) => {
+              alert("Pembayaran gagal. Silakan coba lagi.")
+              console.log(result)
+              setShowPayment(false)
+            },
+            onClose: () => {
+              setShowPayment(false)
+            },
+          });
+        };
+      } else {
         // @ts-expect-error : Type 'Window' is not assignable to type 'Snap'.
         window.snap.embed(token, { embedId: "snap-container" });
-      };
-    } else {
-      // @ts-expect-error : Type 'Window' is not assignable to type 'Snap'.
-      window.snap.embed(token, { embedId: "snap-container" });
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat membuat transaksi");
+    } finally {
+      setIsProcessing(false);
     }
-  } catch (err) {
-    console.error(err);
-    alert("Terjadi kesalahan saat membuat transaksi");
-  } finally {
-    setIsProcessing(false);
-  }
-};
+  };
 
 
   if (showPayment) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-white">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto">
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-primary">Selesaikan Pembayaran</CardTitle>
-                <CardDescription>Gunakan payment gateway yang aman dan terpercaya</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="payment-secure mb-6">
-                  <Shield className="w-5 h-5 text-green-600" />
-                  <span>Pembayaran diamankan dengan enkripsi SSL 256-bit</span>
-                </div>
-                <div id="snap-container"></div>
-              </CardContent>
-            </Card>
-          </div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl text-primary">Selesaikan Pembayaran</CardTitle>
+              <CardDescription>Gunakan payment gateway yang aman dan terpercaya</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4 w-full">
+              <Alert variant="default" className="bg-primary/5 border-primary/5 flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary stroke-primary" />
+                <span className="text-sm text-primary">Pembayaran diamankan dengan enkripsi SSL 256-bit</span>
+              </Alert>
+              <div id="snap-container w-full max-w-fit mx-auto"></div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
