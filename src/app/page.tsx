@@ -41,7 +41,6 @@ export default function Home() {
             <Link
               className="flex items-center gap-2 hover:cursor-pointer"
               href="/register/program"
-              target="_blank"
               rel="noopener noreferrer"
             >
               <Button
