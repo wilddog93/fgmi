@@ -40,7 +40,7 @@ export default function Home() {
           <div className="flex gap-2 items-center flex-col sm:flex-row">
             <Link
               className="flex items-center gap-2 hover:cursor-pointer"
-              href="/register"
+              href="/register/program"
               target="_blank"
               rel="noopener noreferrer"
             >

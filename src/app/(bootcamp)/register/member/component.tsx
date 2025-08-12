@@ -376,7 +376,7 @@ export default function BootcampRegistration() {
                             <div className="flex justify-between items-start">
                               <div>
                                 <h4 className="font-semibold text-lg">{bootcamp.name}</h4>
-                                <div className={cn("flex items-center gap-4 mt-2 text-sm text-muted-foreground", formData.bootcamp === bootcamp.id && "text-white")}>
+                                <div className={cn("flex flex-col md:flex-row items-start md:items-center gap-4 mt-2 text-sm text-muted-foreground", formData.bootcamp === bootcamp.id && "text-white")}>
                                   <div className="flex items-center gap-1">
                                     <Clock className="w-4 h-4" />
                                     {bootcamp.duration}
@@ -491,7 +491,7 @@ export default function BootcampRegistration() {
           {/* Sidebar */}
           <div className="space-y-6">
             {selectedBootcamp && (
-              <Card className="border-0 shadow-lg">
+              <Card className="shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-xl text-primary">Program Terpilih</CardTitle>
                 </CardHeader>

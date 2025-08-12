@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import React from 'react';
+import React, { FC } from 'react';
 import { FaInstagram, FaLinkedin, FaRegEnvelope, FaWhatsapp } from 'react-icons/fa';
 
 const socialMedia = [
@@ -22,9 +23,13 @@ const socialMedia = [
   },
 ];
 
-const Footer = () => {
+type FooterProps = React.ComponentProps<'footer'> & {
+  className?: string;
+};
+
+const Footer: FC<FooterProps> = ({ className, ...props }) => {
   return (
-    <footer className="w-full row-start-3 flex flex-col gap-2 flex-wrap items-center justify-center text-xs">
+    <footer {...props} className={cn("w-full row-start-3 flex flex-col gap-2 flex-wrap items-center justify-center text-xs", className)}>
       {/* Social Media & Copyright */}
       <div className="w-full flex gap-2 items-center flex-col">
         <div className="flex gap-1 flex-wrap items-center">

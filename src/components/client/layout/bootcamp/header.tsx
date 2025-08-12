@@ -21,8 +21,8 @@ const Header:FC<HeaderProps> = ({ className, ...props }) => {
             priority
           />
           <div>
-            <h1 className="text-2xl font-bold text-primary">Indonesian Young Geoscientists Forum</h1>
-            <p className="text-gray-600 text-sm italic">&quot;Eksplorasi tanpa batas, inovasi tanpa henti untuk bumi lestari.&quot;</p>
+            <h1 className="text-xl md:text-2xl font-bold text-primary">Indonesian Young Geoscientists Forum</h1>
+            <p className="hidden md:inline-flex text-gray-600 text-sm italic">&quot;Eksplorasi tanpa batas, inovasi tanpa henti untuk bumi lestari.&quot;</p>
           </div>
         </div>
       </div>
