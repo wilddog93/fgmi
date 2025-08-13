@@ -5,6 +5,12 @@ declare module "midtrans-client" {
     clientKey: string;
   }
 
+  interface CoreApiConfig {
+    isProduction: boolean;
+    serverKey: string;
+    clientKey: string;
+  }
+
   interface TransactionDetails {
     order_id: string;
     gross_amount: number;
@@ -18,6 +24,18 @@ declare module "midtrans-client" {
     item_details?: Record<string, any>[];
   }
 
+  interface ChargeParam {
+    payment_type: string;
+    transaction_details: TransactionDetails;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    customer_details?: Record<string, any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    item_details?: Record<string, any>[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any;
+  }
+
+  // Snap API
   class Snap {
     constructor(config: SnapConfig);
     createTransaction(
@@ -25,5 +43,57 @@ declare module "midtrans-client" {
     ): Promise<{ token: string; redirect_url: string }>;
   }
 
-  export { Snap };
+  // Core API
+  class CoreApi {
+    constructor(config: CoreApiConfig);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    charge(param: ChargeParam): Promise<any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    capture(param: { transaction_id: string }): Promise<any>;
+    transaction: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      status(orderId: string): Promise<any>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      notification(body: any): Promise<any>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      cancel(orderId: string): Promise<any>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expire(orderId: string): Promise<any>;
+    };
+  }
+
+  export { Snap, CoreApi };
+}
+
+// Tambahan untuk window.snap agar tidak perlu @ts-expect-error
+declare global {
+  interface Window {
+    snap: {
+      pay(
+        token: string,
+        options?: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onSuccess?: (result: any) => void;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onPending?: (result: any) => void;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onError?: (result: any) => void;
+          onClose?: () => void;
+        }
+      ): void;
+      embed(
+        token: string,
+        options: {
+          embedId: string;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onSuccess?: (result: any) => void;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onPending?: (result: any) => void;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onError?: (result: any) => void;
+          onClose?: () => void;
+        }
+      ): void;
+    };
+  }
 }

@@ -180,8 +180,7 @@ export default function BootcampRegistration() {
         const text = await response.text();
         throw new Error(`API Error: ${text}`);
       }
-
-      const { token } = await response.json();
+      const { token, redirectUrl } = await response.json();
 
       if(token) {
         setShowPayment(true);
