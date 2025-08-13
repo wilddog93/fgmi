@@ -183,46 +183,47 @@ export default function BootcampRegistration() {
 
       const { token } = await response.json();
 
-      setShowPayment(true);
-
-      if (!document.querySelector("#snap-script")) {
-        const script = document.createElement("script");
-        script.id = "snap-script";
-        script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
-        script.setAttribute(
-          "data-client-key",
-          process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY!
-        );
-        document.body.appendChild(script);
-        script.onload = () => {
+      if(token) {
+        setShowPayment(true);
+        if (!document.querySelector("#snap-script")) {
+          const script = document.createElement("script");
+          script.id = "snap-script";
+          script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+          script.setAttribute(
+            "data-client-key",
+            process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY!
+          );
+          document.body.appendChild(script);
+          script.onload = () => {
+            // @ts-expect-error : Type 'Window' is not assignable to type 'Snap'.
+            window.snap.embed(token, { 
+              embedId: "snap-container",
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onSuccess: (result: any) => {
+                alert("Pembayaran berhasil! Selamat datang di bootcamp!")
+                console.log(result)
+                setShowPayment(false)
+              },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onPending: (result: any) => {
+                alert("Menunggu pembayaran Anda...")
+                console.log(result)
+              },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onError: (result: any) => {
+                alert("Pembayaran gagal. Silakan coba lagi.")
+                console.log(result)
+                setShowPayment(false)
+              },
+              onClose: () => {
+                setShowPayment(false)
+              },
+            });
+          };
+        } else {
           // @ts-expect-error : Type 'Window' is not assignable to type 'Snap'.
-          window.snap.embed(token, { 
-            embedId: "snap-container",
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onSuccess: (result: any) => {
-              alert("Pembayaran berhasil! Selamat datang di bootcamp!")
-              console.log(result)
-              setShowPayment(false)
-            },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onPending: (result: any) => {
-              alert("Menunggu pembayaran Anda...")
-              console.log(result)
-            },
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onError: (result: any) => {
-              alert("Pembayaran gagal. Silakan coba lagi.")
-              console.log(result)
-              setShowPayment(false)
-            },
-            onClose: () => {
-              setShowPayment(false)
-            },
-          });
-        };
-      } else {
-        // @ts-expect-error : Type 'Window' is not assignable to type 'Snap'.
-        window.snap.embed(token, { embedId: "snap-container" });
+          window.snap.embed(token, { embedId: "snap-container" });
+        }
       }
     } catch (err) {
       console.error(err);
@@ -247,7 +248,7 @@ export default function BootcampRegistration() {
                 <Shield className="w-5 h-5 text-primary stroke-primary" />
                 <span className="text-sm text-primary">Pembayaran diamankan dengan enkripsi SSL 256-bit</span>
               </Alert>
-              <div id="snap-container w-full max-w-fit mx-auto"></div>
+              <div id="snap-container" className="w-full max-w-fit mx-auto"></div>
             </CardContent>
           </Card>
         </div>

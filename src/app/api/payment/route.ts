@@ -7,7 +7,7 @@ export async function POST(req: Request) {
       await req.json();
 
     const snap = new midtransClient.Snap({
-      isProduction: process.env.NODE_ENV === "production" ? false : true,
+      isProduction: true,
       serverKey: process.env.MIDTRANS_SERVER_KEY!,
       clientKey: process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY!,
     });
