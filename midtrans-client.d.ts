@@ -17,11 +17,15 @@ declare module "midtrans-client" {
   }
 
   interface CreateTransactionParam {
+    payment_type: string;
     transaction_details: TransactionDetails;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     customer_details?: Record<string, any>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     item_details?: Record<string, any>[];
+    qris?: {
+      acquirer: string;
+    };
   }
 
   interface ChargeParam {
@@ -40,7 +44,7 @@ declare module "midtrans-client" {
     constructor(config: SnapConfig);
     createTransaction(
       param: CreateTransactionParam
-    ): Promise<{ token: string; redirect_url: string }>;
+    ): Promise<{ token: string; redirect_url: string; qr_code_url: string }>;
   }
 
   // Core API

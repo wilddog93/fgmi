@@ -8,7 +8,7 @@ interface HeaderProps extends React.ComponentProps<'header'> {
   className?: string;
 }
 
-const Header:FC<HeaderProps> = ({ className, ...props }) => {
+const HeaderBootcamp:FC<HeaderProps> = ({ className, ...props }) => {
   return (
     <header {...props} className={cn("font-sans bg-white shadow-sm border-b", className)}>
       <div className="container mx-auto px-4 py-6">
@@ -33,4 +33,4 @@ const Header:FC<HeaderProps> = ({ className, ...props }) => {
   );
 }
 
-export default Header;
+export default HeaderBootcamp;

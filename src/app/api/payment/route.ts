@@ -13,6 +13,7 @@ export async function POST(req: Request) {
     });
 
     const parameter = {
+      payment_type: "qris",
       transaction_details: {
         order_id: orderId,
         gross_amount: grossAmount,
@@ -23,6 +24,9 @@ export async function POST(req: Request) {
         phone: customerDetails.phone,
       },
       item_details: itemDetails,
+      qris: {
+        acquirer: "gopay",
+      },
     };
 
     const transaction = await snap.createTransaction(parameter);
@@ -30,6 +34,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       token: transaction.token,
       redirectUrl: transaction.redirect_url,
+      qr_code_url: transaction.qr_code_url,
     });
   } catch (err) {
     console.error("Midtrans API error:", err);
