@@ -1,5 +1,5 @@
 import type { Validate, FieldValues, UseFormReturn } from "react-hook-form";
-import { emailRegex, nikRegex, phoneRegex } from "../utils";
+import { emailRegex, nikRegex, phoneRegex } from "./index";
 import {
   Validation,
   ValidationInput,
