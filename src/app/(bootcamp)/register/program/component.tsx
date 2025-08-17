@@ -14,6 +14,7 @@ import SmartTextField from "@/components/client/molecule/form/smart-textfield"
 import SmartSelectSingle from "@/components/client/molecule/form/smart-select-single"
 import { useRouter } from "next/navigation"
 import QRCode from "react-qr-code";
+import { toast } from "sonner"
 
 const bootcampOptions = [
   { id: "program-1", name: "Program 1", price: 8500000, duration: "16 minggu" },
@@ -112,7 +113,6 @@ export default function BootcampRegistration() {
     ...formMethods
   } = useForm<FormRegistrationData>();
   const [isProcessing, setIsProcessing] = useState(false)
-  const [showPayment, setShowPayment] = useState(false)
 
   const selectedBootcamp = bootcampOptions.find((b) => b.id === dataForm.bootcamp)
 
@@ -209,15 +209,6 @@ export default function BootcampRegistration() {
     })
   }, [])
 
-  // show payment qris
-  // useEffect(() => {
-  //   if (!dataForm.recordPayment?.transaction_id) {
-  //     setShowPayment(false);
-  //     return;
-  //   }
-  //   setShowPayment(true);
-  // }, [dataForm.recordPayment]);
-
   const handleCreatQRCode = async (data: FormRegistrationData) => {
     if (!selectedBootcamp) return;
     setIsProcessing(true);
@@ -247,10 +238,17 @@ export default function BootcampRegistration() {
       const result = await response.json();
       console.log(result, "qris");
       setDataForm({ ...dataForm, recordPayment: result });
-      const transaction_id = result.transaction_id;
+      const transaction_id = result.transaction_id || '';
       setIsProcessing(false);
-      router.replace(`/register/program/payment?order_id=${orderId}&transaction_id=${transaction_id}&payment_type=gopay`);
-      // setShowPayment(true);
+      toast.success("Berhasil", {
+        duration: 3000,
+        position: "top-right",
+        description: "QR Code telah dibuat. Silakan periksa status pembayaran di halaman pembayaran.",
+      })
+      if(transaction_id) {
+        router.replace(`/register/program/payment?order_id=${orderId}&transaction_id=${transaction_id}&payment_type=gopay`);
+        // setShowPayment(true);
+      }
     } catch (err) {
       console.error(err);
       alert("Terjadi kesalahan saat membuat QR Code");
@@ -258,31 +256,6 @@ export default function BootcampRegistration() {
     } finally {
       setIsProcessing(false);
     }
-  }
-
-  if (showPayment) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <Card className="border-0 shadow-lg">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl text-primary">Selesaikan Pembayaran</CardTitle>
-              <CardDescription>Gunakan payment gateway yang aman dan terpercaya</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4 w-full">
-              <Alert variant="default" className="bg-primary/5 border-primary/5 flex items-center gap-2">
-                <Shield className="w-5 h-5 text-primary stroke-primary" />
-                <span className="text-sm text-primary">Pembayaran diamankan dengan enkripsi SSL 256-bit</span>
-              </Alert>
-              <div id="snap-container" className="w-full max-w-fit mx-auto"></div>
-              {dataForm.recordPayment && 
-                <PaymentQRIS data={dataForm.recordPayment} />
-              }
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
   }
 
   return (

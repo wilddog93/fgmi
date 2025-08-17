@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Quicksand, Geist_Mono, Rubik } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sonner";
 
 const quicksand = Quicksand({
   variable: "--font-quicksand",
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           >
             {children}
           </ThemeProvider>
+          <Toaster />
         </body>
       </html>
     </>
