@@ -4,7 +4,7 @@ import { XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import { useRegistrationForm } from "../../register/program/form-register";
+import { useRegistrationForm } from "../../../../stores/form-register-program";
 
 export default function PaymentError() {
   const { dataForm, setDataForm } = useRegistrationForm();

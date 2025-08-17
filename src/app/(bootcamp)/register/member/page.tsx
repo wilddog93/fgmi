@@ -1,8 +1,8 @@
 import React from 'react';
-import BootcampRegistration from './component';
+import MemberRegistration from './component';
 
-const BootcampRegisterPage = () => {
-  return <BootcampRegistration />;
+const MemberRegisterPage = () => {
+  return <MemberRegistration />;
 }
 
-export default BootcampRegisterPage;
+export default MemberRegisterPage;

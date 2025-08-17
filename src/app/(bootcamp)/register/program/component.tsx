@@ -1,20 +1,23 @@
 "use client"
 
-import React, { Fragment, useCallback, useEffect, useMemo, useState } from "react"
-import { Button } from "@/components/ui/button"
+import React, { Fragment, useCallback, useEffect, useState } from "react"
+import { Shield, CheckCircle, Users, Clock, Award, CreditCard, X } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Shield, CheckCircle, Users, Clock, Award, CreditCard } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { Alert } from "@/components/ui/alert"
+import { cn } from "@/lib/utils"
+
+import { FormRegistrationData, useRegistrationForm } from "../../../../stores/form-register-program"
+
 import SmartForm from "@/components/client/molecule/form/smart-form"
-import { FormRegistrationData, MidtransResponse, useRegistrationForm } from "./form-register"
-import { useForm } from "react-hook-form"
 import SmartTextField from "@/components/client/molecule/form/smart-textfield"
 import SmartSelectSingle from "@/components/client/molecule/form/smart-select-single"
-import { useRouter } from "next/navigation"
-import QRCode from "react-qr-code";
-import { toast } from "sonner"
+
 
 const bootcampOptions = [
   { id: "program-1", name: "Program 1", price: 8500000, duration: "16 minggu" },
@@ -28,76 +31,6 @@ const segmentasiOptions = [
   { id: "2", name: "Fresh Graduate" },
   { id: "3", name: "Professional" },
 ]
-
-function PaymentQRIS({ data }: { data: MidtransResponse }) {
-  const qrAction = data.actions.find((a) => a.name === "generate-qr-code");
-  const deeplink = data.actions.find((a) => a.name === "deeplink-redirect");
-  const statusAction = data.actions.find((a) => a.name === "get-status");
-  const cancelAction = data.actions.find((a) => a.name === "cancel");
-
-
-  return (
-    <div className="w-full mx-auto p-6 bg-white shadow rounded-2xl space-y-6">
-      <h2 className="text-xl font-semibold text-center">
-        Pembayaran QRIS / GoPay
-      </h2>
-
-      {/* QR Code */}
-      {qrAction && (
-        <div className="flex justify-center">
-          <QRCode value={qrAction.url} size={256} />
-        </div>
-      )}
-
-      {/* Detail Transaksi */}
-      <div className="space-y-2 text-sm text-center">
-        <p>
-          <span className="font-medium">Order ID:</span> {data.order_id}
-        </p>
-        <p>
-          <span className="font-medium">Nominal:</span> Rp{" "}
-          {parseInt(data.gross_amount).toLocaleString("id-ID")}
-        </p>
-        <p>
-          <span className="font-medium">Status:</span>{" "}
-          <span className="capitalize">{data.transaction_status}</span>
-        </p>
-        <p>
-          <span className="font-medium">Kadaluarsa:</span> {data.expiry_time}
-        </p>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-2 items-center justify-center">
-        {/* Tombol Deeplink */}
-        {deeplink && (
-          <Button asChild className="w-full max-w-fit">
-            <a href={deeplink.url} target="_blank" rel="noopener noreferrer">
-              Bayar dengan GoPay
-            </a>
-          </Button>
-        )}
-
-        {/* Tombol Status */}
-        {statusAction && (
-          <Button asChild className="w-full max-w-fit">
-            <a href={statusAction.url} target="_blank" rel="noopener noreferrer">
-              Status Transaksi
-            </a>
-          </Button>
-        )}
-
-        {/* Tombol Batal */}
-        {cancelAction && (
-          <Button asChild className="w-full max-w-fit">
-            <a href={cancelAction.url} target="_blank" rel="noopener noreferrer">
-              Batal Transaksi
-            </a>
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export default function BootcampRegistration() {
   const router = useRouter();
@@ -279,8 +212,8 @@ export default function BootcampRegistration() {
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Form */}
-          <div className={cn("lg:col-span-2", step === 1 && !selectedBootcamp && "lg:col-span-3")}>
-            <Card className="shadow-lg">
+          <div className={cn("lg:col-span-2", step <= 3 && !selectedBootcamp && "lg:col-span-3")}>
+            <Card className="animate-reveal shadow-lg transform transition-all duration-300">
               <CardHeader>
                 <CardTitle className="text-2xl text-primary">
                   {step === 1 && "Mari berkenalan!"}
@@ -523,9 +456,17 @@ export default function BootcampRegistration() {
           {/* Sidebar */}
           <div className="space-y-6">
             {selectedBootcamp && (
-              <Card className="shadow-lg">
-                <CardHeader>
+              <Card className="animate-reveal shadow-lg transform transition-all duration-300">
+                <CardHeader className="flex items-center justify-between">
                   <CardTitle className="text-xl text-primary">Program Terpilih</CardTitle>
+                  <Button
+                    className="h-full w-6 p-1 hover:cursor-pointer"
+                    onClick={() => handleInputChange("bootcamp", "")}
+                    variant="outline"
+                    type="button"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <h4 className="font-semibold text-lg mb-2">{selectedBootcamp.name}</h4>

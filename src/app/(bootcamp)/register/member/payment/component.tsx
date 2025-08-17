@@ -6,7 +6,7 @@ import QRCode from 'react-qr-code';
 import { ChevronLeftCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { MidtransResponse, useRegistrationForm } from '../../../../../stores/form-register-program';
+import { MidtransResponse, useRegistrationForm } from '../../../../../stores/form-register-member';
 import { Button } from '@/components/ui/button';
 import { useCountdown } from '@/lib/hooks/use-countdown';
 
