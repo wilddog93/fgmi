@@ -16,7 +16,7 @@ interface PaymentQRISProps {
   data: MidtransResponse;
 }
 
-function PaymentQRIS({ data }: PaymentQRISProps) {
+const PaymentQRIS = ({ data }: PaymentQRISProps) => {
   const router = useRouter();
   const { dataForm, setDataForm } = useRegistrationForm();
 
@@ -86,7 +86,7 @@ function PaymentQRIS({ data }: PaymentQRISProps) {
     return () => clearInterval(interval);
   }, [data?.order_id, status]);
 
-  // console.log(qrAction?.url, 'qrAction');
+  // console.log(['cancel', 'expired'].includes(status), 'qrAction');
 
   return (
     <div className="w-full mx-auto p-6 bg-white shadow rounded-2xl space-y-6">
@@ -146,7 +146,7 @@ function PaymentQRIS({ data }: PaymentQRISProps) {
         {cancelAction && (
           <Button
             onClick={handleCancel}
-            className="w-full max-w-fit hover:cursor-pointer"
+            className="w-full max-w-fit hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             variant="destructive"
             disabled={['cancel', 'expired'].includes(status)}
           >
