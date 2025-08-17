@@ -36,7 +36,9 @@ declare module "midtrans-client" {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     item_details?: Record<string, any>[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+    qris?: {
+      acquirer: string;
+    };
   }
 
   // Snap API
@@ -44,7 +46,7 @@ declare module "midtrans-client" {
     constructor(config: SnapConfig);
     createTransaction(
       param: CreateTransactionParam
-    ): Promise<{ token: string; redirect_url: string; qr_code_url: string }>;
+    ): Promise<{ token: string; redirect_url: string }>;
   }
 
   // Core API

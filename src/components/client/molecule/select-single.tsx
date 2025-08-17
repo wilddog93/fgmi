@@ -110,6 +110,7 @@ const SelectSingle = <TValue,>({
             </Label>
           )}
           <Button
+            type="button"
             id={usedId}
             role="combobox"
             aria-expanded={open}
