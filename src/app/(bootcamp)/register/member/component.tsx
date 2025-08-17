@@ -197,11 +197,9 @@ export default function BootcampRegistration() {
       );
       document.body.appendChild(script);
       script.onload = () => {
-        // @ts-expect-error : Type 'Window' is not assignable to type 'Snap'.
         window.snap.embed(token, { embedId: "snap-container" });
       };
     } else {
-      // @ts-expect-error : Type 'Window' is not assignable to type 'Snap'.
       window.snap.embed(token, { embedId: "snap-container" });
     }
   } catch (err) {
