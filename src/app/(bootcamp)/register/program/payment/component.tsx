@@ -76,7 +76,7 @@ const PaymentQRIS = ({ data }: PaymentQRISProps) => {
     fetchStatus(data.order_id);
 
     const interval = setInterval(() => {
-      if (['cancel', 'expired', 'settlement'].includes(status)) {
+      if (['cancel', 'expired', 'settlement', 'success'].includes(status)) {
         clearInterval(interval);
         return;
       }
