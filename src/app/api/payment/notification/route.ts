@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     // Bisa update DB sesuai status transaksi
     // statusResponse.transaction_status: "capture", "settlement", "pending", "deny", "expire", "cancel"
     if (statusResponse.transaction_status === "settlement") {
-      // Update DB
+      // Update DB success
       // Update status
       // Send notification
     }

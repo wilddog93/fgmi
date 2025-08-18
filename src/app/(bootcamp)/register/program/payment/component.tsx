@@ -3,12 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import QRCode from 'react-qr-code';
-import { ChevronLeftCircle } from 'lucide-react';
+import { CheckIcon, ChevronLeftCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { MidtransResponse, useRegistrationForm } from '../../../../../stores/form-register-program';
 import { Button } from '@/components/ui/button';
 import { useCountdown } from '@/lib/hooks/use-countdown';
+import { cn } from '@/lib/utils';
 
 
 // -------------------- PaymentQRIS --------------------
@@ -76,7 +77,7 @@ const PaymentQRIS = ({ data }: PaymentQRISProps) => {
     fetchStatus(data.order_id);
 
     const interval = setInterval(() => {
-      if (['cancel', 'expired', 'settlement', 'success'].includes(status)) {
+      if (['cancel', 'expired', 'settlement'].includes(status)) {
         clearInterval(interval);
         return;
       }
@@ -97,6 +98,17 @@ const PaymentQRIS = ({ data }: PaymentQRISProps) => {
         <div className="flex justify-center">
           {status === 'pending' ? (
             <QRCode value={qrAction.url} size={256} />
+          ) : status === 'settlement' ? (
+            <div className="relative flex justify-center items-center">
+              <QRCode value={qrAction.url} size={256} className="blur-sm" />
+              <Button
+                onClick={() => router.push('/register/program')}
+                className="absolute inset-0 size-[256px] bg-green-200/10 hover:bg-green-300/10 text-white font-bold hover:scale-105 transition hover:cursor-pointer"
+              >
+                <CheckIcon className='text-success' />
+                Pembayaran telah selesai
+              </Button>
+            </div>
           ) : (
             <div className="relative flex justify-center items-center">
               <QRCode value={qrAction.url} size={256} className="blur-sm" />
@@ -121,21 +133,23 @@ const PaymentQRIS = ({ data }: PaymentQRISProps) => {
           {data?.gross_amount ? parseInt(data.gross_amount).toLocaleString('id-ID') : 0}
         </p>
         <p className="font-bold">
-          Status: <span className="capitalize">{status}</span>
+          Status: <span className="capitalize">{status === "settlement" ? "Paid" : status}</span>
         </p>
         <p className="font-bold">
           Waktu tersisa:{' '}
           {status === 'cancel'
-            ? 'Pembayaran telah dibatalkan'
-            : typeof countdown === 'number' && countdown < 0
-            ? 'Kadaluarsa'
+            ? 'Pembayaran telah dibatalkan' 
+            : status === 'settlement' 
+              ? 'Pembayaran telah selesai'
+              : typeof countdown === 'number' && countdown < 0
+              ? 'Kadaluarsa'
             : countdown}
         </p>
       </div>
 
       {/* Tombol Aksi */}
-      <div className="flex flex-col md:flex-row gap-2 items-center justify-center">
-        {deeplink && !['cancel', 'expired'].includes(status) && (
+      <div className={cn("flex flex-col md:flex-row gap-2 items-center justify-center")}>
+        {deeplink && !['cancel', 'expired', 'settlement'].includes(status) && (
           <Button asChild className="w-full max-w-fit">
             <a href={deeplink.url} target="_blank" rel="noopener noreferrer">
               Bayar dengan GoPay
@@ -143,7 +157,7 @@ const PaymentQRIS = ({ data }: PaymentQRISProps) => {
           </Button>
         )}
 
-        {cancelAction && (
+        {cancelAction && !['cancel', 'expired', 'settlement'].includes(status)  && (
           <Button
             onClick={handleCancel}
             className="w-full max-w-fit hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -156,7 +170,7 @@ const PaymentQRIS = ({ data }: PaymentQRISProps) => {
           </Button>
         )}
 
-        {['cancel', 'expired'].includes(status) && (
+        {['cancel', 'expired', 'settlement'].includes(status) && (
           <Button
             onClick={() => router.push('/register/program')}
             className="w-full max-w-fit"
