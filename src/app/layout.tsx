@@ -3,6 +3,7 @@ import { Quicksand, Geist_Mono, Rubik } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
+import Script from "next/script";
 
 const quicksand = Quicksand({
   variable: "--font-quicksand",
@@ -38,6 +39,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
             {children}
           </ThemeProvider>
           <Toaster />
+
+          {/* Snap Midtrans */}
+          <Script
+            src="https://app.sandbox.midtrans.com/snap/snap.js" 
+            data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY} 
+          />
         </body>
       </html>
     </>

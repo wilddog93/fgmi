@@ -228,8 +228,8 @@ export default function BootcampRegistration() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <SmartForm
-                  // onSubmit={onSubmitPayment}
-                  onSubmit={handleCreatQRCode}
+                  onSubmit={onSubmitPayment}
+                  // onSubmit={handleCreatQRCode}
                   propsUseForm={{
                     defaultValues: dataForm,
                     mode: "onSubmit",
@@ -439,8 +439,8 @@ export default function BootcampRegistration() {
                     ) : (
                       <Button
                         type="button"
-                        // onClick={handleSubmit(onSubmitPayment)}
-                        onClick={handleSubmit(handleCreatQRCode)}
+                        onClick={handleSubmit(onSubmitPayment)}
+                        // onClick={handleSubmit(handleCreatQRCode)}
                         disabled={isProcessing || !isValid}
                         className={cn("px-8 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
                       >
