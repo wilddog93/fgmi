@@ -18,23 +18,48 @@ import SmartForm from "@/components/client/molecule/form/smart-form"
 import SmartTextField from "@/components/client/molecule/form/smart-textfield"
 import SmartSelectSingle from "@/components/client/molecule/form/smart-select-single"
 
-
-const bootcampOptions = [
-  { id: "program-1", name: "Program 1", price: 8500000, duration: "16 minggu" },
-  { id: "program-2", name: "Program 2", price: 7500000, duration: "14 minggu" },
-  { id: "program-3", name: "Program 3", price: 9500000, duration: "18 minggu" },
-  { id: "program-4", name: "Program 4", price: 8000000, duration: "12 minggu" },
-]
+import axios from "axios";
+import { Programs } from "@/lib/types"
+import { formatLocalDate } from "@/lib/utils/dateFormat"
 
 const segmentasiOptions = [
-  { id: "1", name: "Student" },
-  { id: "2", name: "Fresh Graduate" },
-  { id: "3", name: "Professional" },
+  { id: "STUDENT", name: "Student" },
+  { id: "FRESH_GRADUATE", name: "Fresh Graduate" },
+  { id: "PROFESSIONAL", name: "Professional" },
 ]
 
 export default function BootcampRegistration() {
+  const APIUrl = 'http://localhost:4000/v1'
   const router = useRouter();
   const { step, dataForm, setStep, setDataForm, reset } = useRegistrationForm();
+  const [programs, setPrograms] = useState<Programs[]>();
+
+  console.log({ dataForm }, 'programs');
+
+  const gerPrograms = async () => {
+    try {
+      const { status, data } = await axios.get(`${APIUrl}/programs`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        params: {
+          limit: 10,
+          page: 1,
+        }
+      });
+      if(status !== 200) {
+        throw new Error('Error fetching programs');
+      }
+      setPrograms(data?.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    gerPrograms();
+  }, []);
+
 
   const { 
     handleSubmit, 
@@ -47,7 +72,7 @@ export default function BootcampRegistration() {
   } = useForm<FormRegistrationData>();
   const [isProcessing, setIsProcessing] = useState(false)
 
-  const selectedBootcamp = bootcampOptions.find((b) => b.id === dataForm.bootcamp)
+  const selectedProgram = programs && programs.find((b) => b.id === dataForm.programPackage)
 
   const handleInputChange = (field: keyof FormRegistrationData, value: string) => {
     setDataForm({ ...dataForm, [field]: value })
@@ -58,12 +83,12 @@ export default function BootcampRegistration() {
       setStep(step + 1)
       setDataForm({ 
         ...dataForm, 
-        fullName: watch("fullName"),
+        name: watch("name"),
         email: watch("email"),
         phone: watch("phone"),
-        segmentasi: watch("segmentasi"),
-        instansi: watch("instansi"),
-        bootcamp: watch("bootcamp"),
+        segment: watch("segment"),
+        institution: watch("institution"),
+        programPackage: watch("programPackage"),
       })
     }
   }, [step, dataForm, watch])
@@ -75,7 +100,7 @@ export default function BootcampRegistration() {
   }
 
   const disabledStep = (step: number): boolean => {
-    const isValidStepOne = !watch("email") || !watch("fullName") || !watch("phone") || !watch("segmentasi") || !watch("instansi");
+    const isValidStepOne = !watch("email") || !watch("name") || !watch("phone") || !watch("segment") || !watch("institution");
     const isValidStepTwo = !isValid;
     if(step === 1) {
       return isValidStepOne ? true : false
@@ -88,7 +113,7 @@ export default function BootcampRegistration() {
 
   const onSubmitPayment = async(data: FormRegistrationData) => {
     console.log(data, 'form data');
-    if (!selectedBootcamp) return;
+    if (!selectedProgram) return;
     setIsProcessing(true);
     const orderId = `BOOTCAMP-${Date.now()}`;
     try {
@@ -97,18 +122,18 @@ export default function BootcampRegistration() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orderId,
-          grossAmount: selectedBootcamp.price,
+          grossAmount: selectedProgram.priceNonMember,
           customerDetails: {
-            fullName: data.fullName,
+            name: data.name,
             email: data.email,
             phone: data.phone,
           },
           itemDetails: [
             {
-              id: selectedBootcamp.id,
-              price: selectedBootcamp.price,
+              id: selectedProgram.id,
+              price: selectedProgram.priceNonMember,
               quantity: 1,
-              name: selectedBootcamp.name,
+              name: selectedProgram.name,
             },
           ],
         }),
@@ -130,6 +155,40 @@ export default function BootcampRegistration() {
     }
   }
 
+  const onSubmitNewPayment = async(data: FormRegistrationData) => {
+    console.log(data, 'form data');
+    if (!selectedProgram) return;
+    setIsProcessing(true);
+    try {
+      const response = await axios.post('http://localhost:4000/v1/checkout',
+        {
+          grossAmount: selectedProgram.priceNonMember,
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          segment: data.segment,
+          institution: data.institution,
+          programPackage: selectedProgram.id,
+        }
+      )
+
+      if (response.status !== 200 && response.status !== 201) {
+        const text = response.data;
+        throw new Error(`API Error: ${text}`);
+      }
+      const result = await response.data;
+      console.log(result, "result-client");
+      // router.replace(`/register/program/payment?order_id=${orderId}&transaction_id=${token}&payment_type=all`);
+      // setDataForm({ ...data, tokenPayment: token });
+      // console.log(token, redirectUrl, qr_code_url, "result");
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat membuat transaksi");
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
   useEffect(() => {
     if(dataForm) {
       formMethods.reset(dataForm);
@@ -137,13 +196,13 @@ export default function BootcampRegistration() {
   }, [dataForm])
 
   useEffect(() => {
-    formMethods.register("bootcamp", {
+    formMethods.register("programPackage", {
       required: true,
     })
   }, [])
 
   const handleCreatQRCode = async (data: FormRegistrationData) => {
-    if (!selectedBootcamp) return;
+    if (!selectedProgram) return;
     setIsProcessing(true);
     const orderId = `BOOTCAMP-${Date.now()}`;
     try {
@@ -152,18 +211,18 @@ export default function BootcampRegistration() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orderId,
-          grossAmount: selectedBootcamp.price,
+          grossAmount: selectedProgram.priceNonMember,
           customerDetails: {
-            fullName: data.fullName,
+            name: data.name,
             email: data.email,
             phone: data.phone,
           },
           itemDetails: [
             {
-              id: selectedBootcamp.id,
-              price: selectedBootcamp.price,
+              id: selectedProgram.id,
+              price: selectedProgram.priceNonMember,
               quantity: 1,
-              name: selectedBootcamp.name,
+              name: selectedProgram.name,
             },
           ],
         }),
@@ -212,7 +271,7 @@ export default function BootcampRegistration() {
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Form */}
-          <div className={cn("lg:col-span-2", step <= 3 && !selectedBootcamp && "lg:col-span-3")}>
+          <div className={cn("lg:col-span-2", step <= 3 && !selectedProgram && "lg:col-span-3")}>
             <Card className="animate-reveal shadow-lg transform transition-all duration-300">
               <CardHeader>
                 <CardTitle className="text-2xl text-primary">
@@ -228,7 +287,7 @@ export default function BootcampRegistration() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <SmartForm
-                  onSubmit={onSubmitPayment}
+                  onSubmit={onSubmitNewPayment}
                   // onSubmit={handleCreatQRCode}
                   propsUseForm={{
                     defaultValues: dataForm,
@@ -262,7 +321,7 @@ export default function BootcampRegistration() {
                           }}
                         />
                         <SmartTextField
-                          name="fullName"
+                          name="name"
                           label="Nama Lengkap"
                           required
                           validation={{
@@ -292,7 +351,7 @@ export default function BootcampRegistration() {
                       <div className="grid grid-cols-2 gap-2">
                         <h3 className="col-span-2 text-lg font-semibold mb-4 text-primary">Latar Belakang</h3>
                         <SmartSelectSingle
-                          name="segmentasi"
+                          name="segment"
                           button={{
                             label: "Segmentasi",
                             props: {
@@ -308,8 +367,8 @@ export default function BootcampRegistration() {
                           className="col-span-2"
                         />
                         <SmartTextField
-                          name="instansi"
-                          label="Instansi"
+                          name="institution"
+                          label="Instansi/Institusi"
                           required
                           validation={{
                             required: true,
@@ -317,7 +376,7 @@ export default function BootcampRegistration() {
                           className="col-span-2 mb-4"
                           fullwidth
                           inputProps={{
-                            placeholder: "Masukkan nama instansi",
+                            placeholder: "Masukkan nama instansi/institusi",
                           }}
                         />
                       </div>
@@ -326,26 +385,24 @@ export default function BootcampRegistration() {
                   {/* Step 2: Bootcamp Selection */}
                   {step === 2 && (
                     <div className="grid grid-cols-1 gap-2">
-                      <h3 className="text-lg font-semibold mb-4 text-primary">Pilih Program Bootcamp</h3>
+                      <h3 className="text-lg font-semibold mb-4 text-primary">Pilih Program</h3>
                       <div className="grid gap-4">
-                        {bootcampOptions.map((bootcamp) => (
+                        {programs && programs?.length > 0 && programs.map((item, index) => (
+                        console.log({ item }, 'item'),
                           <div
-                            key={bootcamp.id}
+                            key={item.id || index}
                             className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                              dataForm.bootcamp === bootcamp.id
+                              dataForm.programPackage === item.id
                                 ? "border-primary/30 bg-primary text-white"
                                 : "border-gray-200 hover:border-primary"
                             }`}
-                            onClick={() => handleInputChange("bootcamp", bootcamp.id)}
+                            onClick={() => handleInputChange("programPackage", item.id)}
                           >
                             <div className="flex justify-between items-start">
                               <div>
-                                <h4 className="font-semibold text-lg">{bootcamp.name}</h4>
-                                <div className={cn("flex flex-col md:flex-row items-start md:items-center gap-4 mt-2 text-sm text-muted-foreground", dataForm.bootcamp === bootcamp.id && "text-white")}>
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="w-4 h-4" />
-                                    {bootcamp.duration}
-                                  </div>
+                                <h4 className="font-semibold text-lg">{item.name}</h4>
+                                <div className={cn("flex flex-col md:flex-row items-start md:items-center gap-4 mt-2 text-sm text-muted-foreground", dataForm.programPackage === item.id && "text-white")}>
+                                  
                                   <div className="flex items-center gap-1">
                                     <Users className="w-4 h-4" />
                                     Kelas kecil
@@ -357,10 +414,10 @@ export default function BootcampRegistration() {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className={cn("text-2xl font-bold text-primary", dataForm.bootcamp === bootcamp.id && "text-white")}>
-                                  Rp {bootcamp.price.toLocaleString("id-ID")}
+                                <div className={cn("text-2xl font-bold text-primary", dataForm.programPackage === item.id && "text-white")}>
+                                  Rp {item.priceNonMember.toLocaleString("id-ID")}
                                 </div>
-                                <div className={cn("text-sm text-muted-foreground", dataForm.bootcamp === bootcamp.id && "text-white")}>Total biaya</div>
+                                <div className={cn("text-sm text-muted-foreground", dataForm.programPackage === item.id && "text-white")}>Total biaya</div>
                               </div>
                             </div>
                           </div>
@@ -378,7 +435,7 @@ export default function BootcampRegistration() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Nama:</span>
                             <span className="font-medium">
-                              {dataForm.fullName}
+                              {dataForm.name}
                             </span>
                           </div>
                           <div className="flex justify-between">
@@ -387,13 +444,13 @@ export default function BootcampRegistration() {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Program:</span>
-                            <span className="font-medium">{selectedBootcamp?.name}</span>
+                            <span className="font-medium">{selectedProgram?.name}</span>
                           </div>
                           <Separator />
                           <div className="flex justify-between text-lg font-semibold">
                             <span>Total Biaya:</span>
                             <span className="text-primary">
-                              Rp {selectedBootcamp?.price.toLocaleString("id-ID")}
+                              Rp {selectedProgram?.priceNonMember.toLocaleString("id-ID")}
                             </span>
                           </div>
                         </div>
@@ -439,7 +496,7 @@ export default function BootcampRegistration() {
                     ) : (
                       <Button
                         type="button"
-                        onClick={handleSubmit(onSubmitPayment)}
+                        onClick={handleSubmit(onSubmitNewPayment)}
                         // onClick={handleSubmit(handleCreatQRCode)}
                         disabled={isProcessing || !isValid}
                         className={cn("px-8 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
@@ -455,13 +512,13 @@ export default function BootcampRegistration() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {selectedBootcamp && (
+            {selectedProgram && (
               <Card className="animate-reveal shadow-lg transform transition-all duration-300">
                 <CardHeader className="flex items-center justify-between">
                   <CardTitle className="text-xl text-primary">Program Terpilih</CardTitle>
                   <Button
                     className="h-full w-6 p-1 hover:cursor-pointer"
-                    onClick={() => handleInputChange("bootcamp", "")}
+                    onClick={() => handleInputChange("programPackage", "")}
                     variant="outline"
                     type="button"
                   >
@@ -469,16 +526,16 @@ export default function BootcampRegistration() {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <h4 className="font-semibold text-lg mb-2">{selectedBootcamp.name}</h4>
+                  <h4 className="font-semibold text-lg mb-2">{selectedProgram.name}</h4>
                   <div className="space-y-2 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4" />
-                      Durasi: {selectedBootcamp.duration}
+                      Durasi: {selectedProgram.startDate ? formatLocalDate(selectedProgram.startDate, 'short') : "-"} - {selectedProgram.endDate ? formatLocalDate(selectedProgram.endDate, 'short') : "-"}
                     </div>
-                    <div className="flex items-center gap-2">
+                    {/* <div className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
                       Maksimal 15 peserta per kelas
-                    </div>
+                    </div> */}
                     <div className="flex items-center gap-2">
                       <Award className="w-4 h-4" />
                       Sertifikat resmi
@@ -487,7 +544,7 @@ export default function BootcampRegistration() {
                   <Separator className="my-4" />
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">
-                      Rp {selectedBootcamp.price.toLocaleString("id-ID")}
+                      Rp {selectedProgram.priceNonMember.toLocaleString("id-ID")}
                     </div>
                     <div className="text-sm text-gray-500">Total Biaya Pendaftaran</div>
                   </div>

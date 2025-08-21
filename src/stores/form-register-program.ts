@@ -21,10 +21,10 @@ export interface MidtransResponse {
 export interface FormRegistrationData {
   email: string;
   phone: string;
-  fullName: string;
-  segmentasi: string;
-  instansi: string;
-  bootcamp: string;
+  name: string;
+  segment: string;
+  institution: string;
+  programPackage: string;
   tokenPayment: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recordPayment?: MidtransResponse;
@@ -41,10 +41,10 @@ interface UseFormRegistrationStore {
 const initialDataForm: FormRegistrationData = {
   email: "",
   phone: "",
-  fullName: "",
-  segmentasi: "",
-  instansi: "",
-  bootcamp: "",
+  name: "",
+  segment: "",
+  institution: "",
+  programPackage: "",
   tokenPayment: "",
   recordPayment: undefined,
 };
