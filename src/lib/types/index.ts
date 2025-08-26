@@ -1,5 +1,10 @@
 import { ButtonProps } from "@/components/ui/button";
 
+export type Option = {
+  label: string;
+  value: string;
+};
+
 export type SelectSingleProps<TValue> = {
   id?: string;
   className?: string;

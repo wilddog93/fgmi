@@ -1,9 +1,9 @@
 "use client"
 
 import React, { Fragment, useCallback, useEffect, useState } from "react"
-import { Shield, CheckCircle, Users, Clock, Award, CreditCard, X } from "lucide-react"
+import { Shield, CheckCircle, Users, Clock, Award, CreditCard, X, SearchIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,8 +19,9 @@ import SmartTextField from "@/components/client/molecule/form/smart-textfield"
 import SmartSelectSingle from "@/components/client/molecule/form/smart-select-single"
 
 import axios from "axios";
-import { Programs } from "@/lib/types"
+import { Option, Programs } from "@/lib/types"
 import { formatLocalDate } from "@/lib/utils/dateFormat"
+import { useDebounce } from "@/lib/hooks/use-debounce"
 
 const segmentasiOptions = [
   { id: "STUDENT", name: "Student" },
@@ -33,8 +34,6 @@ export default function BootcampRegistration() {
   const router = useRouter();
   const { step, dataForm, setStep, setDataForm, reset } = useRegistrationForm();
   const [programs, setPrograms] = useState<Programs[]>();
-
-  console.log({ dataForm }, 'programs');
 
   const gerPrograms = async () => {
     try {
@@ -70,9 +69,79 @@ export default function BootcampRegistration() {
     setValue,
     ...formMethods
   } = useForm<FormRegistrationData>();
-  const [isProcessing, setIsProcessing] = useState(false)
 
+  const [isProcessing, setIsProcessing] = useState(false)
   const selectedProgram = programs && programs.find((b) => b.id === dataForm.programPackage)
+
+  const isEmail = useWatch({
+    name: "email",
+    control,
+  });
+
+  const [isSearching, setIsSearching] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [userRegistered, setUserRegistered] = useState<any[]>([]);
+  const selectedUser = userRegistered?.find((item) => item.email === isEmail);
+
+  const debounceEmail = useDebounce(dataForm.email, 1500);
+
+  const getEmailRegistration = async (search: string) => {
+    if(!search) return;
+    setIsSearching(true);
+    try {
+      const { status, data } = await axios.get(`${APIUrl}/payment/check/email-register-program`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        params: {
+          email: search,
+        },
+      });
+      if(status !== 200) {
+        throw new Error('Error fetching email');
+      }
+      if(!data) {
+        return;
+      }
+      // console.log({ data }, 'data-email');
+      if(data?.type === "user" || data?.type === "member") {
+        const { type, result } = data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const resMember = result?.map((item: any) => ({
+          ...item,
+          phone: item?.phone ?? '',
+          source: "MEMBER",
+          segment: item.segment ?? '',
+          institution: item.institution ?? '',
+        }));
+
+        if(type === "user") {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const res = result?.map((item: any) => ({
+            ...item,
+            phone: item.member?.phone ?? '',
+            source: !item.member ? "NON-MEMBER" : "MEMBER",
+            segment: item.member?.segment ?? '',
+            institution: item.member?.institution ?? '',
+          }));
+          setUserRegistered(res);
+        } else {
+          setUserRegistered(resMember);
+        }
+      } else {
+        setUserRegistered([]);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  useEffect(() => {
+    getEmailRegistration(debounceEmail);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debounceEmail]);
 
   const handleInputChange = (field: keyof FormRegistrationData, value: string) => {
     setDataForm({ ...dataForm, [field]: value })
@@ -155,52 +224,6 @@ export default function BootcampRegistration() {
     }
   }
 
-  const onSubmitNewPayment = async(data: FormRegistrationData) => {
-    console.log(data, 'form data');
-    if (!selectedProgram) return;
-    setIsProcessing(true);
-    try {
-      const response = await axios.post('http://localhost:4000/v1/checkout',
-        {
-          grossAmount: selectedProgram.priceNonMember,
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          segment: data.segment,
-          institution: data.institution,
-          programPackage: selectedProgram.id,
-        }
-      )
-
-      if (response.status !== 200 && response.status !== 201) {
-        const text = response.data;
-        throw new Error(`API Error: ${text}`);
-      }
-      const result = await response.data;
-      console.log(result, "result-client");
-      // router.replace(`/register/program/payment?order_id=${orderId}&transaction_id=${token}&payment_type=all`);
-      // setDataForm({ ...data, tokenPayment: token });
-      // console.log(token, redirectUrl, qr_code_url, "result");
-    } catch (err) {
-      console.error(err);
-      alert("Terjadi kesalahan saat membuat transaksi");
-    } finally {
-      setIsProcessing(false);
-    }
-  }
-
-  useEffect(() => {
-    if(dataForm) {
-      formMethods.reset(dataForm);
-    }
-  }, [dataForm])
-
-  useEffect(() => {
-    formMethods.register("programPackage", {
-      required: true,
-    })
-  }, [])
-
   const handleCreatQRCode = async (data: FormRegistrationData) => {
     if (!selectedProgram) return;
     setIsProcessing(true);
@@ -249,6 +272,83 @@ export default function BootcampRegistration() {
       setIsProcessing(false);
     }
   }
+
+  const onSubmitNewPayment = async(data: FormRegistrationData) => {
+    console.log(data, 'form data');
+    if (!selectedProgram) return;
+    console.log({ form: data, programs: selectedProgram }, 'form data');
+    setIsProcessing(true);
+    try {
+      const response = await axios.post('http://localhost:4000/v1/payment/checkout/program/snap',
+        {
+          programId: selectedProgram.id,
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          segment: data.segment,
+          institution: data.institution,
+          method: "QRIS",
+        },
+      )
+
+      if (response.status !== 200 && response.status !== 201) {
+        const text = response.data;
+        throw new Error(`API Error: ${text}`);
+      }
+      const result = await response.data;
+      // by snap
+      console.log(result, 'result');
+      router.replace(`/register/program/payment?order_id=${result?.orderId}&token=${result?.midtrans?.token}&payment_type=snap`);
+      setDataForm({ ...data, tokenPayment: result?.midtrans?.token });
+
+      // by gopay coreApi
+      // router.replace(`/register/program/payment?order_id=${result?.midtrans?.order_id}&payment_type=gopay`);
+      // setDataForm({ ...data, recordPayment: result?.midtrans });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (errors: any) {
+      console.error(errors?.response?.data?.message, 'errors');
+      toast.error("Transaksi gagal", {
+        duration: 3000,
+        position: "top-right",
+        description: errors?.response?.data?.message || errors.message || "Terjadi kesalahan saat membuat transaksi",
+      });
+      // alert("Terjadi kesalahan saat membuat transaksi");
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  useEffect(() => {
+    if(!selectedUser) return;
+    setValue('email', selectedUser?.email || dataForm.email);
+    setValue('phone', selectedUser?.phone || dataForm.phone);
+    setValue('name', selectedUser?.name || dataForm.name);
+    setValue('segment', selectedUser?.segment || dataForm.segment);
+    setValue('institution', selectedUser?.institution || dataForm.institution);
+    // setValue(selectedUser.name, dataForm.name);
+    // setValue(selectedUser.segment, dataForm.segment);
+    // setValue(selectedUser.institution, dataForm.institution);
+  }, [selectedUser]);
+
+  useEffect(() => {
+    if(dataForm) {
+      formMethods.reset(dataForm);
+    }
+  }, [dataForm])
+
+  useEffect(() => {
+    formMethods.register("programPackage", {
+      required: {
+        value: true,
+        message: "Pilih program",
+      },
+    })
+  }, [])
+
+
+  const isMember = selectedUser?.member || (selectedUser?.source === "MEMBER");
+
+  console.log({ selectedUser }, 'user');
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -308,17 +408,35 @@ export default function BootcampRegistration() {
                     <Fragment>
                       <div className="grid grid-cols-2 gap-2">
                         <h3 className="col-span-2 text-lg font-semibold mb-4 text-primary">Informasi Pribadi</h3>
-                        <SmartTextField
+                        <SmartSelectSingle
                           name="email"
-                          label="Email"
-                          validation={{
-                            required: true,
+                          button={{
+                            label: "Email",
+                            props: {
+                              className: "w-full",
+                            },
                           }}
-                          className="col-span-2 mb-4"
-                          fullwidth
-                          inputProps={{
-                            placeholder: "nama@email.com",
+                          command={{
+                            options: userRegistered?.map((item) => ({
+                              value: item?.email,
+                              label: item?.email,
+                            })),
+                            addItem:  userRegistered?.length > 0 ? {
+                              enable: false,
+                              description: "Email sudah terdaftar di sistem",
+                            } : {
+                              enable: true,
+                              description: "Tambah email baru",
+                            },
+                            onInputSearchChange: (search: string) => {
+                              setDataForm({ ...dataForm, email: search });
+                            },
+                            isLoading: isSearching,
+                            textNotFound: "Email tidak ditemukan",
                           }}
+                          className="col-span-2"
+                          Icon={(props) => <SearchIcon {...props} className={cn('w-4 h-4')} />}
+                          textHelper={isMember ? `Email sudah terdaftar di sistem sebagai ${selectedUser?.source?.toLowerCase()}` : ''}
                         />
                         <SmartTextField
                           name="name"
@@ -362,7 +480,7 @@ export default function BootcampRegistration() {
                             options: segmentasiOptions.map((item) => ({
                               value: item.id,
                               label: item.name,
-                            })),
+                            }))
                           }}
                           className="col-span-2"
                         />
@@ -415,7 +533,7 @@ export default function BootcampRegistration() {
                               </div>
                               <div className="text-right">
                                 <div className={cn("text-2xl font-bold text-primary", dataForm.programPackage === item.id && "text-white")}>
-                                  Rp {item.priceNonMember.toLocaleString("id-ID")}
+                                  Rp {isMember ? item.priceMember.toLocaleString("id-ID") : item.priceNonMember.toLocaleString("id-ID")}
                                 </div>
                                 <div className={cn("text-sm text-muted-foreground", dataForm.programPackage === item.id && "text-white")}>Total biaya</div>
                               </div>

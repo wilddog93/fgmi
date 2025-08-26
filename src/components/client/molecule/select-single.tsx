@@ -19,6 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Label } from "@/components/ui/label"
+import { IconBaseProps, IconType } from "react-icons/lib"
 
 export type SelectSingleProps<TValue> = {
   id?: string;
@@ -51,6 +52,9 @@ export type SelectSingleProps<TValue> = {
   textError?: string;
   textHelper?: string;
   required?: boolean;
+  Icon?: (props: IconBaseProps & {
+    open: boolean;
+  }) => React.ReactElement<IconType>;
 }
 
 const SelectSingle = <TValue,>({
@@ -66,6 +70,7 @@ const SelectSingle = <TValue,>({
   textError,
   textHelper,
   required,
+  Icon
 }: SelectSingleProps<TValue>) => {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState(
@@ -116,8 +121,8 @@ const SelectSingle = <TValue,>({
             aria-expanded={open}
             className={cn("relative flex flex-row justify-between  h-10 rounded-[8px] border border-input bg-background px-3 py-2 text-sm ring-offset-background text-foreground hover:bg-background hover:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:shadow-[0_0_0_4px_rgba(244,126,32,0.1)] !disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-white disabled:text-black",
               textError && 'text-destructive',
-              textHelper && 'text-muted',
-              optional && 'text-muted',
+              textHelper && 'text-gray-300',
+              optional && 'text-gray-300',
               button?.props?.className,
             )}
             disabled={disabled}
@@ -131,20 +136,30 @@ const SelectSingle = <TValue,>({
                 <div className="flex-1 overflow-hidden text-left text-ellipsis break-words">
                   {shownValue}
                 </div>
-                <ChevronDown
-                  className={cn('size-4 transform duration-300', 
-                    textError ? 'text-destructive' : '',
-                    open ? 'rotate-180' : ''
-                  )}
-                />
+                {!!Icon ? (
+                    <Icon
+                      open={open}
+                      className={cn('size-4 transform duration-300', 
+                        textError ? 'text-destructive' : '',
+                        open ? 'rotate-180' : ''
+                      )}
+                    />
+                ): (
+                  <ChevronDown
+                    className={cn('size-4 transform duration-300', 
+                      textError ? 'text-destructive' : '',
+                      open ? 'rotate-180' : ''
+                    )}
+                  />
+                )}
               </>
             )}
           </Button>
           {!textError && !!textHelper && (
             <p
               className={cn(
-                'text-secondary text-sm',
-                button?.props?.disabled ? 'text-muted' : ''
+                'text-primary text-sm',
+                button?.props?.disabled ? 'text-muted' : '',
               )}
             >
               {textHelper}

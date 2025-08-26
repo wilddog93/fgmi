@@ -3,21 +3,23 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import QRCode from 'react-qr-code';
-import { CheckIcon, ChevronLeftCircle } from 'lucide-react';
+import { CheckCircleIcon, CheckIcon, ChevronLeftCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { MidtransResponse, useRegistrationForm } from '../../../../../stores/form-register-program';
 import { Button } from '@/components/ui/button';
 import { useCountdown } from '@/lib/hooks/use-countdown';
 import { cn } from '@/lib/utils';
+import axios from 'axios';
 
 
 // -------------------- PaymentQRIS --------------------
 interface PaymentQRISProps {
+  id: string;
   data: MidtransResponse;
 }
 
-const PaymentQRIS = ({ data }: PaymentQRISProps) => {
+const PaymentQRIS = ({ id, data }: PaymentQRISProps) => {
   const router = useRouter();
   const { dataForm, setDataForm } = useRegistrationForm();
 
@@ -29,9 +31,10 @@ const PaymentQRIS = ({ data }: PaymentQRISProps) => {
 
   const fetchStatus = async (orderId: string) => {
     try {
-      const res = await fetch(`/api/payment/status?order_id=${orderId}`);
-      const result = await res.json();
-      setStatus(result.transaction_status);
+      const res = await axios.get(`http://localhost:4000/v1/payment/status?order_id=${orderId}`);
+      const result = res.data;
+      console.log(result, 'response')
+      setStatus(result?.result?.transaction_status ?? 'expired');
       return result;
     } catch (err) {
       console.error('Fetch status error:', err);
@@ -39,7 +42,7 @@ const PaymentQRIS = ({ data }: PaymentQRISProps) => {
   };
 
   const countdown = useCountdown(new Date(data?.expiry_time), () => {
-    fetchStatus(data?.order_id);
+    fetchStatus(id);
   });
 
   const handleCancel = async () => {
@@ -72,9 +75,9 @@ const PaymentQRIS = ({ data }: PaymentQRISProps) => {
   };
 
   useEffect(() => {
-    if (!data?.order_id) return;
+    if (!id) return;
 
-    fetchStatus(data.order_id);
+    fetchStatus(id);
 
     const interval = setInterval(() => {
       if (['cancel', 'expired', 'settlement'].includes(status)) {
@@ -85,9 +88,7 @@ const PaymentQRIS = ({ data }: PaymentQRISProps) => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [data?.order_id, status]);
-
-  // console.log(['cancel', 'expired'].includes(status), 'qrAction');
+  }, [id, status]);
 
   return (
     <div className="w-full mx-auto p-6 bg-white shadow rounded-2xl space-y-6">
@@ -103,10 +104,10 @@ const PaymentQRIS = ({ data }: PaymentQRISProps) => {
               <QRCode value={qrAction.url} size={256} className="blur-sm" />
               <Button
                 onClick={() => router.push('/register/program')}
-                className="absolute inset-0 size-[256px] bg-green-200/10 hover:bg-green-300/10 text-white font-bold hover:scale-105 transition hover:cursor-pointer"
+                className="absolute flex flex-col gap-2 text-xl inset-0 size-[256px] bg-green-200/10 hover:bg-green-300/10 text-white font-bold hover:scale-105 transition hover:cursor-pointer"
               >
-                <CheckIcon className='text-success' />
-                Pembayaran telah selesai
+                <CheckCircleIcon className='text-green-500 size-10' />
+                Transaksi berhasil!
               </Button>
             </div>
           ) : (
@@ -133,7 +134,7 @@ const PaymentQRIS = ({ data }: PaymentQRISProps) => {
           {data?.gross_amount ? parseInt(data.gross_amount).toLocaleString('id-ID') : 0}
         </p>
         <p className="font-bold">
-          Status: <span className="capitalize">{status === "settlement" ? "Paid" : status}</span>
+          Status: <span className="capitalize">{status === "settlement" ? "Berhasil" : status}</span>
         </p>
         <p className="font-bold">
           Waktu tersisa:{' '}
@@ -207,24 +208,24 @@ declare global {
 }
 interface PaymentComponentProps {
   order_id?: string;
-  transaction_id?: string;
   payment_type?: string;
+  token?: string;
 }
 
-const PaymentComponent = ({ order_id, transaction_id, payment_type }: PaymentComponentProps) => {
+const PaymentComponent = ({ order_id, payment_type, token }: PaymentComponentProps) => {
   const router = useRouter();
   const { dataForm, reset } = useRegistrationForm();
 
   useEffect(() => {
-    if (!transaction_id) {
+    if (!order_id) {
       router.push('/register/program');
       return;
     }
 
     const loadSnap = () => {
-      if (!window.snap) return;
+      if (!window.snap || !token) return;
 
-      window.snap.embed(transaction_id, {
+      window.snap.embed(token, {
         embedId: 'snap-container',
         onSuccess: () => {
           toast.success('Pembayaran berhasil!');
@@ -241,7 +242,7 @@ const PaymentComponent = ({ order_id, transaction_id, payment_type }: PaymentCom
       });
     };
 
-    if (payment_type === 'all') {
+    if (payment_type === 'snap') {
       if (!document.querySelector('#snap-script')) {
         const script = document.createElement('script');
         script.id = 'snap-script';
@@ -257,12 +258,13 @@ const PaymentComponent = ({ order_id, transaction_id, payment_type }: PaymentCom
         }
       }
     }
-  }, [transaction_id, payment_type, reset, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, payment_type, reset, router]);
 
-  if (!order_id || !transaction_id) return null;
+  if (!order_id) return null;
 
   if (payment_type === 'gopay') {
-    return <PaymentQRIS data={dataForm.recordPayment as MidtransResponse} />;
+    return <PaymentQRIS id={order_id} data={dataForm.recordPayment as MidtransResponse} />;
   }
 
   return <div id="snap-container" className="w-full max-w-fit mx-auto" />;

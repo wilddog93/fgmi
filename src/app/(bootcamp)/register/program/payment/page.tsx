@@ -13,7 +13,7 @@ interface Props {
 
 const Page = async ({ searchParams }: Props) => {
   const paramsData = await searchParams;
-  const { order_id, transaction_id, payment_type } = paramsData;
+  const { order_id, token, payment_type } = paramsData;
 
   // const res = await fetch(`/api/payment/status`, {
   //   method: "GET",
@@ -45,7 +45,7 @@ const Page = async ({ searchParams }: Props) => {
                 <Shield className="w-5 h-5 text-primary stroke-primary" />
                 <span className="text-sm text-primary">Pembayaran diamankan dengan enkripsi SSL 256-bit</span>
               </Alert>
-              <PaymentComponent order_id={order_id as string} transaction_id={transaction_id as string} payment_type={payment_type as string} />
+              <PaymentComponent order_id={order_id as string} token={token as string} payment_type={payment_type as string} />
             </CardContent>
           </Card>
         </div>
