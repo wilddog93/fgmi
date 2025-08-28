@@ -73,7 +73,7 @@ const Footer: FC<FooterProps> = ({ className, ...props }) => {
             >
               SOHO Pancoran Tower Splendor – Lt.18 Unit 1817, Tebet Barat, Pancoran, Jakarta Selatan, DKI Jakarta 12810
             </Link>
-            <p className="text-xs text-center text-gray-600">Copyright © {new Date().getFullYear()} Indonesian Young Geoscientists Forum. All rights reserved.</p>
+            <p className="text-xs text-center text-gray-600">Copyright © {new Date().getFullYear()} Forum Geosaintis Muda Indonesia. All rights reserved.</p>
           </motion.div>
         </div>
       </div>

@@ -40,7 +40,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="w-full overflow-hidden font-sans min-h-screen">
+    <div className="w-full overflow-hidden font-sans min-h-screen bg-[#E2F1FC]">
       <div className="fixed w-full z-50">
         <Navbar />
         {/* <NavMenu /> */}

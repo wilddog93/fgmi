@@ -78,7 +78,7 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-4">
-          <NavigationMenu>
+          {/* <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuLink asChild className={navigationMenuTriggerStyle({
@@ -133,10 +133,10 @@ const Navbar = () => {
                 </NavigationMenuContent>
               </NavigationMenuItem>
             </NavigationMenuList>
-          </NavigationMenu>
+          </NavigationMenu> */}
 
           <Link href="/register/member" className="button-primary text-sm">
-            Daftar
+            Daftar Membership FGMI
           </Link>
         </div>
 
@@ -153,7 +153,7 @@ const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg py-4 px-6">
           <div className="flex flex-col space-y-4">
-            <NavigationMenu orientation="vertical" className="data-[orientation=vertical]:max-w-full">
+            {/* <NavigationMenu orientation="vertical" className="data-[orientation=vertical]:max-w-full">
               <NavigationMenuList className="data-[orientation=horizontal]:w-full data-[orientation=vertical]:flex-col data-[orientation=vertical]:justify-start">
                 <NavigationMenuItem className="data-[orientation=vertical]:text-start">
                   <NavigationMenuLink asChild className={navigationMenuTriggerStyle({
@@ -208,14 +208,18 @@ const Navbar = () => {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               </NavigationMenuList>
-            </NavigationMenu>
-            <Link
+            </NavigationMenu> */}
+
+            <Link href="/register/member" className="button-primary text-sm">
+              Daftar Membership FGMI
+            </Link>
+            {/* <Link
               href="/auth"
               className="button-primary w-full text-center"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Sign In
-            </Link>
+            </Link> */}
           </div>
         </div>
       )}

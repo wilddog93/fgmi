@@ -1,5 +1,5 @@
 import type { Validate, FieldValues, UseFormReturn } from "react-hook-form";
-import { emailRegex, nikRegex, phoneRegex } from "./index";
+import { regex } from "./index";
 import {
   Validation,
   ValidationInput,
@@ -80,7 +80,7 @@ export const getValidation = ({
               if (
                 !!value &&
                 typeof value === "string" &&
-                !emailRegex.test(value)
+                !regex.emailRegex.test(value)
               ) {
                 return `Masukkan email yang benar`;
               }
@@ -92,7 +92,7 @@ export const getValidation = ({
               if (
                 !!value &&
                 typeof value === "string" &&
-                !phoneRegex.test(value)
+                !regex.phoneRegex.test(value)
               ) {
                 return `Masukkan nomor telepon yang benar`;
               }
@@ -103,7 +103,7 @@ export const getValidation = ({
             usedValue = (value: unknown) => {
               const strValue = value as string;
               console.log("=============nik usedValue", strValue);
-              if (!!strValue && !nikRegex.test(strValue)) {
+              if (!!strValue && !regex.nikRegex.test(strValue)) {
                 return `Masukkan NIK yang benar`;
               }
               return true;

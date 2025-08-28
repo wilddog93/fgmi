@@ -48,21 +48,21 @@ const Hero = () => {
             className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary mb-6"
           >
             <Zap className="w-4 h-4 mr-2" />
-            <span className="text-sm font-medium font-inter tracking-wide">The First AI Organic Outbound Platform</span>
+            <span className="text-sm font-medium font-inter tracking-wide">Wadah Kolaborasi Geosaintis Muda Indonesia</span>
           </motion.div>
           
           <motion.h1 
             variants={itemVariants}
             className="font-inter font-bold text-4xl md:text-5xl lg:text-7xl tracking-tight max-w-4xl mx-auto mb-6 text-[var(--convrt-dark-blue)] leading-[1.1]"
           >
-            From <span className="text-[#EA384C] font-extrabold">Ignored</span> to <span className="text-[#6936F5] font-extrabold">Influential</span>
+            Menjadi <span className="text-primary font-extrabold">Geosaintis</span> saling Kolaborasi
           </motion.h1>
           
           <motion.p 
             variants={itemVariants}
             className="font-inter text-xl text-[var(--convrt-dark-blue)]/80 max-w-3xl mx-auto mb-8 leading-relaxed"
           >
-            AI that makes buyers trust you, so you win more deals
+            Menghubungkan geosaintis muda melalui kolaborasi, pengetahuan, dan program berkelanjutan.
           </motion.p>
           
           <motion.div 
@@ -70,7 +70,7 @@ const Hero = () => {
             className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-16"
           >
             <Link href="/register/program" className="button-primary flex items-center group font-inter font-medium">
-              Bootcamp
+              Daftar Bootcamp FGMI
               <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
             </Link>
           </motion.div>

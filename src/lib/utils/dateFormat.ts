@@ -1,5 +1,5 @@
 import { LONG_MONTH_NAMES, SHORT_MONTH_NAMES } from "../constant";
-import { MonthFormat } from "../types";
+import { MonthFormat } from "../types/global";
 
 export const formatLocalDate = (
   dateString: string | Date,

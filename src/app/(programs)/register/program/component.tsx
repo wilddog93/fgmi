@@ -19,7 +19,7 @@ import SmartTextField from "@/components/client/molecule/form/smart-textfield"
 import SmartSelectSingle from "@/components/client/molecule/form/smart-select-single"
 
 import axios from "axios";
-import { Option, Programs } from "@/lib/types"
+import { Program } from "@/lib/types"
 import { formatLocalDate } from "@/lib/utils/dateFormat"
 import { useDebounce } from "@/lib/hooks/use-debounce"
 
@@ -33,7 +33,7 @@ export default function BootcampRegistration() {
   const APIUrl = 'http://localhost:4000/v1'
   const router = useRouter();
   const { step, dataForm, setStep, setDataForm, reset } = useRegistrationForm();
-  const [programs, setPrograms] = useState<Programs[]>();
+  const [programs, setPrograms] = useState<Program[]>();
 
   const gerPrograms = async () => {
     try {
@@ -169,7 +169,7 @@ export default function BootcampRegistration() {
   }
 
   const disabledStep = (step: number): boolean => {
-    const isValidStepOne = !watch("email") || !watch("name") || !watch("phone") || !watch("segment") || !watch("institution");
+    const isValidStepOne = !watch("email") || !watch("name") || !watch("phone");
     const isValidStepTwo = !isValid;
     if(step === 1) {
       return isValidStepOne ? true : false
@@ -178,99 +178,6 @@ export default function BootcampRegistration() {
       return isValidStepTwo ? true : false
     }
     return true
-  }
-
-  const onSubmitPayment = async(data: FormRegistrationData) => {
-    console.log(data, 'form data');
-    if (!selectedProgram) return;
-    setIsProcessing(true);
-    const orderId = `BOOTCAMP-${Date.now()}`;
-    try {
-      const response = await fetch("/api/payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId,
-          grossAmount: selectedProgram.priceNonMember,
-          customerDetails: {
-            name: data.name,
-            email: data.email,
-            phone: data.phone,
-          },
-          itemDetails: [
-            {
-              id: selectedProgram.id,
-              price: selectedProgram.priceNonMember,
-              quantity: 1,
-              name: selectedProgram.name,
-            },
-          ],
-        }),
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`API Error: ${text}`);
-      }
-      const { token, redirectUrl, qr_code_url } = await response.json();
-      router.replace(`/register/program/payment?order_id=${orderId}&transaction_id=${token}&payment_type=all`);
-      setDataForm({ ...data, tokenPayment: token });
-      console.log(token, redirectUrl, qr_code_url, "result");
-    } catch (err) {
-      console.error(err);
-      alert("Terjadi kesalahan saat membuat transaksi");
-    } finally {
-      setIsProcessing(false);
-    }
-  }
-
-  const handleCreatQRCode = async (data: FormRegistrationData) => {
-    if (!selectedProgram) return;
-    setIsProcessing(true);
-    const orderId = `BOOTCAMP-${Date.now()}`;
-    try {
-      const response = await fetch("/api/payment/qris", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId,
-          grossAmount: selectedProgram.priceNonMember,
-          customerDetails: {
-            name: data.name,
-            email: data.email,
-            phone: data.phone,
-          },
-          itemDetails: [
-            {
-              id: selectedProgram.id,
-              price: selectedProgram.priceNonMember,
-              quantity: 1,
-              name: selectedProgram.name,
-            },
-          ],
-        }),
-      });
-      const result = await response.json();
-      console.log(result, "qris");
-      setDataForm({ ...dataForm, recordPayment: result });
-      const transaction_id = result.transaction_id || '';
-      setIsProcessing(false);
-      toast.success("Berhasil", {
-        duration: 3000,
-        position: "top-right",
-        description: "QR Code telah dibuat. Silakan periksa status pembayaran di halaman pembayaran.",
-      })
-      if(transaction_id) {
-        router.replace(`/register/program/payment?order_id=${orderId}&transaction_id=${transaction_id}&payment_type=gopay`);
-        // setShowPayment(true);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Terjadi kesalahan saat membuat QR Code");
-      setIsProcessing(false);
-    } finally {
-      setIsProcessing(false);
-    }
   }
 
   const onSubmitNewPayment = async(data: FormRegistrationData) => {
@@ -325,9 +232,6 @@ export default function BootcampRegistration() {
     setValue('name', selectedUser?.name || dataForm.name);
     setValue('segment', selectedUser?.segment || dataForm.segment);
     setValue('institution', selectedUser?.institution || dataForm.institution);
-    // setValue(selectedUser.name, dataForm.name);
-    // setValue(selectedUser.segment, dataForm.segment);
-    // setValue(selectedUser.institution, dataForm.institution);
   }, [selectedUser]);
 
   useEffect(() => {

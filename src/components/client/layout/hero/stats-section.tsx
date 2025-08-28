@@ -41,24 +41,24 @@ const StatsSection: React.FC<StatsSectionProps> = ({ className, ...props }) => {
     >
       <motion.div variants={itemVariants}>
         <StatCard 
-          value="15x" 
-          description="Higher Conversion Rates" 
+          title="Ekstraksi"
+          description="Mengembangkan ilmu eksplorasi energi, mineral, dan sumber daya geologi untuk kemajuan bangsa." 
           icon={<TrendingUp className="w-8 h-8" />} 
         />
       </motion.div>
       
       <motion.div variants={itemVariants}>
         <StatCard 
-          value="80%" 
-          description="Less Prospecting Time" 
+          title='Konservasi'
+          description="Melestarikan warisan geologi dan lingkungan melalui edukasi, geopark, serta pelindungan alam." 
           icon={<BarChart2 className="w-8 h-8" />} 
         />
       </motion.div>
       
       <motion.div variants={itemVariants}>
         <StatCard 
-          value="78%" 
-          description="Sales Outperformance" 
+          title='Mitigasi'
+          description="Meningkatkan kesadaran dan kesiapsiagaan terhadap bencana geologi untuk keselamatan masyarakat." 
           icon={<Award className="w-8 h-8" />} 
         />
       </motion.div>
