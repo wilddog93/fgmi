@@ -3,12 +3,14 @@ declare module "midtrans-client" {
     isProduction: boolean;
     serverKey: string;
     clientKey: string;
+    merchantId?: string;
   }
 
   interface CoreApiConfig {
     isProduction: boolean;
     serverKey: string;
     clientKey: string;
+    merchantId?: string;
   }
 
   interface TransactionDetails {
@@ -17,8 +19,9 @@ declare module "midtrans-client" {
   }
 
   interface CreateTransactionParam {
-    payment_type: string;
-    transaction_details: TransactionDetails;
+    payment_type?: string;
+    payment_method?: string;
+    transaction_details?: TransactionDetails;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     customer_details?: Record<string, any>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,6 +70,17 @@ declare module "midtrans-client" {
       expire(orderId: string): Promise<any>;
     };
   }
+
+  // Snap BI
+  // class SnapBi {
+  //   constructor(config: SnapConfig);
+  //   createTransaction(param: CreateTransactionParam): Promise<{
+  //     token?: string;
+  //     redirect_url?: string;
+  //     qr_string?: string;
+  //     actions?: { name: string; method: string; url: string }[];
+  //   }>;
+  // }
 
   export { Snap, CoreApi };
 }

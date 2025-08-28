@@ -31,4 +31,18 @@ export type SelectSingleProps<TValue> = {
   textError?: string;
   textHelper?: string;
   required?: boolean;
-}
+};
+
+export type Programs = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  priceMember: number;
+  priceNonMember: number;
+};
+
+export type MonthFormat = "long" | "short";
