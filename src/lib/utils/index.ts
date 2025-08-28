@@ -5,5 +5,4 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export { default as string } from "./string";
 export { default as regex } from "./regex";

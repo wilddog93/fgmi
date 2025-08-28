@@ -22,6 +22,8 @@ import axios from "axios";
 import { Program } from "@/lib/types"
 import { formatLocalDate } from "@/lib/utils/dateFormat"
 import { useDebounce } from "@/lib/hooks/use-debounce"
+import {  } from "@/lib/utils"
+import { capitalizeFirstLetter, truncateString } from "@/lib/utils/string"
 
 const segmentasiOptions = [
   { id: "STUDENT", name: "Student" },
@@ -386,16 +388,12 @@ export default function BootcampRegistration() {
                               label: item.name,
                             }))
                           }}
-                          className="col-span-2"
+                          className=""
                         />
                         <SmartTextField
                           name="institution"
                           label="Instansi/Institusi"
-                          required
-                          validation={{
-                            required: true,
-                          }}
-                          className="col-span-2 mb-4"
+                          className="mb-4"
                           fullwidth
                           inputProps={{
                             placeholder: "Masukkan nama instansi/institusi",
@@ -421,17 +419,13 @@ export default function BootcampRegistration() {
                             onClick={() => handleInputChange("programPackage", item.id)}
                           >
                             <div className="flex justify-between items-start">
-                              <div>
+                              <div className="flex flex-col gap-2">
                                 <h4 className="font-semibold text-lg">{item.name}</h4>
-                                <div className={cn("flex flex-col md:flex-row items-start md:items-center gap-4 mt-2 text-sm text-muted-foreground", dataForm.programPackage === item.id && "text-white")}>
-                                  
-                                  <div className="flex items-center gap-1">
-                                    <Users className="w-4 h-4" />
-                                    Kelas kecil
-                                  </div>
+                                <div className={cn("text-xs text-muted-foreground", dataForm.programPackage === item.id && "text-white")}>{item.description ? truncateString(item.description, 30) : '-'}</div>
+                                <div className={cn("flex flex-col md:flex-row items-start md:items-center gap-4 text-xs text-muted-foreground", dataForm.programPackage === item.id && "text-white")}> 
                                   <div className="flex items-center gap-1">
                                     <Award className="w-4 h-4" />
-                                    Sertifikat
+                                    {item.category ? capitalizeFirstLetter(item.category) : '-'}
                                   </div>
                                 </div>
                               </div>
@@ -554,19 +548,15 @@ export default function BootcampRegistration() {
                       <Clock className="w-4 h-4" />
                       Durasi: {selectedProgram.startDate ? formatLocalDate(selectedProgram.startDate, 'short') : "-"} - {selectedProgram.endDate ? formatLocalDate(selectedProgram.endDate, 'short') : "-"}
                     </div>
-                    {/* <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Maksimal 15 peserta per kelas
-                    </div> */}
                     <div className="flex items-center gap-2">
                       <Award className="w-4 h-4" />
-                      Sertifikat resmi
+                      {selectedProgram.category ? capitalizeFirstLetter(selectedProgram.category) : '-'}
                     </div>
                   </div>
                   <Separator className="my-4" />
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">
-                      Rp {selectedProgram.priceNonMember.toLocaleString("id-ID")}
+                      Rp {isMember ? selectedProgram.priceMember.toLocaleString("id-ID") : selectedProgram.priceNonMember.toLocaleString("id-ID")}
                     </div>
                     <div className="text-sm text-gray-500">Total Biaya Pendaftaran</div>
                   </div>

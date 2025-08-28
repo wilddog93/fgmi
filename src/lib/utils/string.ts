@@ -50,12 +50,3 @@ export const normalizeLineSpacing = (text: string): string => {
 export const snakeToCamel = (snakeCaseString: string): string => {
   return snakeCaseString.replace(/(_\w)/g, (match) => match[1].toUpperCase());
 };
-
-export default {
-  formatWordsWithCapitalizedFirstLetter,
-  getFileNameFromUrl,
-  truncateString,
-  capitalizeFirstLetter,
-  normalizeLineSpacing,
-  snakeToCamel,
-};
