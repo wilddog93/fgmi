@@ -32,7 +32,7 @@ const segmentasiOptions = [
 ]
 
 export default function BootcampRegistration() {
-  const APIUrl = 'http://localhost:4000/v1'
+  const APIUrl = process.env.API_URL || 'http://localhost:4001/v1'
   const router = useRouter();
   const { step, dataForm, setStep, setDataForm, reset } = useRegistrationForm();
   const [programs, setPrograms] = useState<Program[]>();
