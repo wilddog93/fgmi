@@ -37,6 +37,10 @@ export default function BootcampRegistration() {
   const { step, dataForm, setStep, setDataForm, reset } = useRegistrationForm();
   const [programs, setPrograms] = useState<Program[]>();
 
+  const axiosInstance = axios.create({
+    baseURL: APIUrl,
+  });
+
   const gerPrograms = async () => {
     try {
       const { status, data } = await axios.get(`${APIUrl}/programs`, {
@@ -91,7 +95,7 @@ export default function BootcampRegistration() {
     if(!search) return;
     setIsSearching(true);
     try {
-      const { status, data } = await axios.get(`${APIUrl}/payment/check/email-register-program`, {
+      const { status, data } = await axiosInstance.get(`/payment/check/email-register-program`, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -188,7 +192,7 @@ export default function BootcampRegistration() {
     console.log({ form: data, programs: selectedProgram }, 'form data');
     setIsProcessing(true);
     try {
-      const response = await axios.post('/payment/checkout/program/snap',
+      const response = await axiosInstance.post('/payment/checkout/program/snap',
         {
           programId: selectedProgram.id,
           name: data.name,
