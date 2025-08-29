@@ -466,7 +466,7 @@ export default function BootcampRegistration() {
                           <div className="flex justify-between text-lg font-semibold">
                             <span>Total Biaya:</span>
                             <span className="text-primary">
-                              Rp {selectedProgram?.priceNonMember.toLocaleString("id-ID")}
+                              Rp {isMember ? selectedProgram?.priceMember.toLocaleString("id-ID") : selectedProgram?.priceNonMember.toLocaleString("id-ID")}
                             </span>
                           </div>
                         </div>
