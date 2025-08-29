@@ -188,7 +188,7 @@ export default function BootcampRegistration() {
     console.log({ form: data, programs: selectedProgram }, 'form data');
     setIsProcessing(true);
     try {
-      const response = await axios.post('http://localhost:4000/v1/payment/checkout/program/snap',
+      const response = await axios.post('/payment/checkout/program/snap',
         {
           programId: selectedProgram.id,
           name: data.name,
