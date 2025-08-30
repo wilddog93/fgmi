@@ -117,7 +117,6 @@ export default function MemberRegistration() {
       if(!data) {
         return;
       }
-      console.log({ data }, 'data-email');
       if(data?.type === "user" || data?.type === "member") {
         const { type, result } = data;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -223,7 +222,6 @@ export default function MemberRegistration() {
       }
       const result = await response.data;
       // by snap
-      console.log(result, 'result');
       router.replace(`/register/member/payment?order_id=${result?.orderId}&token=${result?.midtrans?.token}&payment_type=snap`);
       setDataForm({ ...data, tokenPayment: result?.midtrans?.token });
       // by gopay coreApi
@@ -454,7 +452,6 @@ export default function MemberRegistration() {
                       <h3 className="text-lg font-semibold mb-4 text-primary">Pilih Keanggotaan</h3>
                       <div className="grid gap-4">
                         {membershipPackages && membershipPackages?.length > 0 && membershipPackages.map((item, index) => (
-                        console.log({ item }, 'item'),
                           <div
                             key={item.id || index}
                             className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${

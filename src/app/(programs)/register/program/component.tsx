@@ -209,7 +209,6 @@ export default function BootcampRegistration() {
       }
       const result = await response.data;
       // by snap
-      console.log(result, 'result');
       router.replace(`/register/program/payment?order_id=${result?.orderId}&token=${result?.midtrans?.token}&payment_type=snap`);
       setDataForm({ ...data, tokenPayment: result?.midtrans?.token });
       // by gopay coreApi
@@ -255,8 +254,6 @@ export default function BootcampRegistration() {
 
 
   const isMember = selectedUser?.member || (selectedUser?.source === "MEMBER");
-
-  console.log({ selectedUser }, 'user');
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -410,7 +407,6 @@ export default function BootcampRegistration() {
                       <h3 className="text-lg font-semibold mb-4 text-primary">Pilih Program</h3>
                       <div className="grid gap-4">
                         {programs && programs?.length > 0 && programs.map((item, index) => (
-                        console.log({ item }, 'item'),
                           <div
                             key={item.id || index}
                             className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
