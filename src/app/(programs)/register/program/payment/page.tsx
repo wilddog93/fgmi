@@ -15,23 +15,6 @@ const Page = async ({ searchParams }: Props) => {
   const paramsData = await searchParams;
   const { order_id, token, payment_type } = paramsData;
 
-  // const res = await fetch(`/api/payment/status`, {
-  //   method: "GET",
-  //   credentials: "include",
-  //   mode: "cors",
-  //   headers: {
-  //     "Content-Type": "application/json",
-  //     Authorization:
-  //         "Basic " +
-  //         Buffer.from(process.env.MIDTRANS_SERVER_KEY + ":").toString(
-  //           "base64"
-  //         ),
-  //     },
-  // });
-
-  // const data = await res.json();
-  // console.log(data, "data-status");
-
   return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">

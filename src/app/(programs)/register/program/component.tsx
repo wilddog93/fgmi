@@ -187,9 +187,8 @@ export default function BootcampRegistration() {
   }
 
   const onSubmitNewPayment = async(data: FormRegistrationData) => {
-    console.log(data, 'form data');
     if (!selectedProgram) return;
-    console.log({ form: data, programs: selectedProgram }, 'form data');
+    // console.log({ form: data, programs: selectedProgram }, 'form data');
     setIsProcessing(true);
     try {
       const response = await axiosInstance.post('/payment/checkout/program/snap',
@@ -213,13 +212,12 @@ export default function BootcampRegistration() {
       console.log(result, 'result');
       router.replace(`/register/program/payment?order_id=${result?.orderId}&token=${result?.midtrans?.token}&payment_type=snap`);
       setDataForm({ ...data, tokenPayment: result?.midtrans?.token });
-
       // by gopay coreApi
       // router.replace(`/register/program/payment?order_id=${result?.midtrans?.order_id}&payment_type=gopay`);
       // setDataForm({ ...data, recordPayment: result?.midtrans });
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (errors: any) {
-      console.error(errors?.response?.data?.message, 'errors');
       toast.error("Transaksi gagal", {
         duration: 3000,
         position: "top-right",

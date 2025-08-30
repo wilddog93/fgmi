@@ -1,9 +1,9 @@
 "use client"
 
 import React, { Fragment, useCallback, useEffect, useState } from "react"
-import { Shield, CheckCircle, Users, Clock, Award, CreditCard, X } from "lucide-react"
+import { Shield, CheckCircle, Award, CreditCard, X, SearchIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,12 +19,10 @@ import SmartTextField from "@/components/client/molecule/form/smart-textfield"
 import SmartSelectSingle from "@/components/client/molecule/form/smart-select-single"
 import SmartMultiSelect from "@/components/client/molecule/form/smart-multi-select"
 
-
-const packageOptions = [
-  { id: "basic", name: "Basic", price: 30000, duration: "16 minggu" },
-  { id: "intermediate", name: "Intermediate", price: 60000, duration: "14 minggu" },
-  { id: "advanced", name: "Advanced", price: 100000, duration: "18 minggu" },
-]
+import axios from "axios";
+import { MembershipPackage } from "@/lib/types"
+import { useDebounce } from "@/lib/hooks/use-debounce"
+import { truncateString } from "@/lib/utils/string"
 
 const interestOptions = [
   { id: "Geophysics", name: "Geophysics" },
@@ -36,14 +34,45 @@ const interestOptions = [
 ]
 
 const segmentasiOptions = [
-  { id: "1", name: "Student" },
-  { id: "2", name: "Fresh Graduate" },
-  { id: "3", name: "Professional" },
+  { id: "STUDENT", name: "Student" },
+  { id: "FRESH_GRADUATE", name: "Fresh Graduate" },
+  { id: "PROFESSIONAL", name: "Professional" },
 ]
 
 export default function MemberRegistration() {
+  const APIUrl = process.env.NEXT_PUBLIC_API_URL! || 'http://localhost:4001/v1'
   const router = useRouter();
   const { step, dataForm, setStep, setDataForm, reset } = useRegistrationForm();
+  const [membershipPackages, setMembershipPackages] = useState<MembershipPackage[]>();
+
+  const axiosInstance = axios.create({
+    baseURL: APIUrl,
+  });
+
+  const getMembershipPackages = async () => {
+    try {
+      const { status, data } = await axiosInstance.get('/memberships', {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        params: {
+          limit: 10,
+          page: 1,
+        }
+      });
+      if(status !== 200) {
+        throw new Error('Error fetching membership packages');
+      }
+      setMembershipPackages(data?.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    getMembershipPackages();
+  }, []);
+
 
   const { 
     handleSubmit, 
@@ -54,9 +83,79 @@ export default function MemberRegistration() {
     setValue,
     ...formMethods
   } = useForm<FormRegistrationData>();
-  const [isProcessing, setIsProcessing] = useState(false)
 
-  const selectedPackage = packageOptions.find((b) => b.id === dataForm.package)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const selectedPackage = membershipPackages &&  membershipPackages.find((b) => b.id === dataForm.membershipPackage);
+
+  const isEmail = useWatch({
+    name: "email",
+    control,
+  });
+
+  const [isSearching, setIsSearching] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [userRegistered, setUserRegistered] = useState<any[]>([]);
+  const selectedUser = userRegistered?.find((item) => item.email === isEmail);
+
+  const debounceEmail = useDebounce(dataForm.email, 1500);
+
+  const getEmailRegistration = async (search: string) => {
+    if(!search) return;
+    setIsSearching(true);
+    try {
+      const { status, data } = await axiosInstance.get(`/payment/check/email-register-member`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        params: {
+          email: search,
+        },
+      });
+      if(status !== 200) {
+        throw new Error('Error fetching email');
+      }
+      if(!data) {
+        return;
+      }
+      console.log({ data }, 'data-email');
+      if(data?.type === "user" || data?.type === "member") {
+        const { type, result } = data;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const resMember = result?.map((item: any) => ({
+          ...item,
+          phone: item?.phone ?? '',
+          source: "MEMBER",
+          segment: item.segment ?? '',
+          institution: item.institution ?? '',
+        }));
+
+        if(type === "user") {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const res = result?.map((item: any) => ({
+            ...item,
+            phone: item.member?.phone ?? '',
+            source: !item.member ? "NON-MEMBER" : "MEMBER",
+            segment: item.member?.segment ?? '',
+            institution: item.member?.institution ?? '',
+          }));
+          setUserRegistered(res);
+        } else {
+          setUserRegistered(resMember);
+        }
+      } else {
+        setUserRegistered([]);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  useEffect(() => {
+    getEmailRegistration(debounceEmail);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debounceEmail]);
 
   const handleInputChange = (field: keyof FormRegistrationData, value: string) => {
     setDataForm({ ...dataForm, [field]: value })
@@ -67,13 +166,15 @@ export default function MemberRegistration() {
       setStep(step + 1)
       setDataForm({ 
         ...dataForm, 
-        fullName: watch("fullName"),
+        name: watch("name"),
         email: watch("email"),
         phone: watch("phone"),
-        segmentasi: watch("segmentasi"),
-        instansi: watch("instansi"),
-        interest: watch("interest"),
-        package: watch("package"),
+        segment: watch("segment"),
+        institution: watch("institution"),
+        interestAreas: watch("interestAreas"),
+        studentId: watch("studentId"),
+        degree: watch("degree"),
+        membershipPackage: watch("membershipPackage"),
       })
     }
   }, [step, dataForm, watch])
@@ -85,7 +186,7 @@ export default function MemberRegistration() {
   }
 
   const disabledStep = (step: number): boolean => {
-    const isValidStepOne = !watch("email") || !watch("fullName") || !watch("phone") || !watch("segmentasi") || !watch("instansi");
+    const isValidStepOne = !watch("email") || !watch("name") || !watch("phone");
     const isValidStepTwo = !isValid;
     if(step === 1) {
       return isValidStepOne ? true : false
@@ -96,49 +197,60 @@ export default function MemberRegistration() {
     return true
   }
 
-  const onSubmitPayment = async(data: FormRegistrationData) => {
-    console.log(data, 'form data');
+  const onSubmitNewPayment = async(data: FormRegistrationData) => {
     if (!selectedPackage) return;
+    // console.log({ form: data, programs: selectedPackage }, 'form data');
     setIsProcessing(true);
-    const orderId = `MEMBER-${Date.now()}`;
     try {
-      const response = await fetch("/api/payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId,
-          grossAmount: selectedPackage.price,
-          customerDetails: {
-            fullName: data.fullName,
-            email: data.email,
-            phone: data.phone,
-          },
-          itemDetails: [
-            {
-              id: selectedPackage.id,
-              price: selectedPackage.price,
-              quantity: 1,
-              name: selectedPackage.name,
-            },
-          ],
-        }),
-      });
+      const response = await axiosInstance.post('/payment/checkout/member/snap',
+        {
+          membershipPackageId: selectedPackage.id,
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          segment: data.segment,
+          studentId: data.studentId,
+          degree: data.degree,
+          institution: data.institution,
+          interestAreas: data.interestAreas,
+          method: "QRIS",
+        },
+      )
 
-      if (!response.ok) {
-        const text = await response.text();
+      if (response.status !== 200 && response.status !== 201) {
+        const text = response.data;
         throw new Error(`API Error: ${text}`);
       }
-      const { token, redirectUrl, qr_code_url } = await response.json();
-      router.replace(`/register/program/payment?order_id=${orderId}&transaction_id=${token}&payment_type=all`);
-      setDataForm({ ...data, tokenPayment: token });
-      console.log(token, redirectUrl, qr_code_url, "result");
-    } catch (err) {
-      console.error(err);
-      alert("Terjadi kesalahan saat membuat transaksi");
+      const result = await response.data;
+      // by snap
+      console.log(result, 'result');
+      router.replace(`/register/member/payment?order_id=${result?.orderId}&token=${result?.midtrans?.token}&payment_type=snap`);
+      setDataForm({ ...data, tokenPayment: result?.midtrans?.token });
+      // by gopay coreApi
+      // router.replace(`/register/program/payment?order_id=${result?.midtrans?.order_id}&payment_type=gopay`);
+      // setDataForm({ ...data, recordPayment: result?.midtrans });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (errors: any) {
+      toast.error("Transaksi gagal", {
+        duration: 3000,
+        position: "top-right",
+        description: errors?.response?.data?.message || errors.message || "Terjadi kesalahan saat membuat transaksi",
+      });
+      // alert("Terjadi kesalahan saat membuat transaksi");
     } finally {
       setIsProcessing(false);
     }
   }
+
+  useEffect(() => {
+    if(!selectedUser) return;
+    setValue('email', selectedUser?.email || dataForm.email);
+    setValue('phone', selectedUser?.phone || dataForm.phone);
+    setValue('name', selectedUser?.name || dataForm.name);
+    setValue('segment', selectedUser?.segment || dataForm.segment);
+    setValue('institution', selectedUser?.institution || dataForm.institution);
+  }, [selectedUser]);
 
   useEffect(() => {
     if(dataForm) {
@@ -147,59 +259,15 @@ export default function MemberRegistration() {
   }, [dataForm])
 
   useEffect(() => {
-    formMethods.register("package", {
-      required: true,
+    formMethods.register("membershipPackage", {
+      required: {
+        value: true,
+        message: "Pilih paket keanggotaan",
+      },
     })
   }, [])
 
-  const handleCreatQRCode = async (data: FormRegistrationData) => {
-    if (!selectedPackage) return;
-    setIsProcessing(true);
-    const orderId = `MEMBER-${Date.now()}`;
-    try {
-      const response = await fetch("/api/payment/qris", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId,
-          grossAmount: selectedPackage.price,
-          customerDetails: {
-            fullName: data.fullName,
-            email: data.email,
-            phone: data.phone,
-          },
-          itemDetails: [
-            {
-              id: selectedPackage.id,
-              price: selectedPackage.price,
-              quantity: 1,
-              name: selectedPackage.name,
-            },
-          ],
-        }),
-      });
-      const result = await response.json();
-      console.log(result, "qris");
-      setDataForm({ ...dataForm, recordPayment: result });
-      const transaction_id = result.transaction_id || '';
-      setIsProcessing(false);
-      toast.success("Berhasil", {
-        duration: 3000,
-        position: "top-right",
-        description: "QR Code telah dibuat. Silakan periksa status pembayaran di halaman pembayaran.",
-      })
-      if(transaction_id) {
-        router.replace(`/register/program/payment?order_id=${orderId}&transaction_id=${transaction_id}&payment_type=gopay`);
-        // setShowPayment(true);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Terjadi kesalahan saat membuat QR Code");
-      setIsProcessing(false);
-    } finally {
-      setIsProcessing(false);
-    }
-  }
+  const isUser = selectedUser;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -227,19 +295,19 @@ export default function MemberRegistration() {
               <CardHeader>
                 <CardTitle className="text-2xl text-primary">
                   {step === 1 && "Mari berkenalan!"}
-                  {step === 2 && "Pilih paket member pilihanmu!"}
+                  {step === 2 && "Pilih program favoritmu!"}
                   {step === 3 && "Konfirmasi & Pembayaran"}
                 </CardTitle>
                 <CardDescription>
                   {step === 1 && "Berikan informasi kontak dan latar belakang Anda"}
-                  {step === 2 && "Pilih pilihan paket member yang sesuai dengan minat Anda"}
+                  {step === 2 && "Pilih program bootcamp yang sesuai dengan minat Anda"}
                   {step === 3 && "Tinjau pilihan Anda dan lakukan pembayaran"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <SmartForm
-                  // onSubmit={onSubmitPayment}
-                  onSubmit={handleCreatQRCode}
+                  onSubmit={onSubmitNewPayment}
+                  // onSubmit={handleCreatQRCode}
                   propsUseForm={{
                     defaultValues: dataForm,
                     mode: "onSubmit",
@@ -259,20 +327,38 @@ export default function MemberRegistration() {
                     <Fragment>
                       <div className="grid grid-cols-2 gap-2">
                         <h3 className="col-span-2 text-lg font-semibold mb-4 text-primary">Informasi Pribadi</h3>
-                        <SmartTextField
+                        <SmartSelectSingle
                           name="email"
-                          label="Email"
-                          validation={{
-                            required: true,
+                          button={{
+                            label: "Email",
+                            props: {
+                              className: "w-full",
+                            },
                           }}
-                          className="col-span-2 mb-4"
-                          fullwidth
-                          inputProps={{
-                            placeholder: "nama@email.com",
+                          command={{
+                            options: userRegistered?.map((item) => ({
+                              value: item?.email,
+                              label: item?.email,
+                            })),
+                            addItem:  userRegistered?.length > 0 ? {
+                              enable: false,
+                              description: "Email sudah terdaftar di sistem",
+                            } : {
+                              enable: true,
+                              description: "Tambah email baru",
+                            },
+                            onInputSearchChange: (search: string) => {
+                              setDataForm({ ...dataForm, email: search });
+                            },
+                            isLoading: isSearching,
+                            textNotFound: "Email tidak ditemukan",
                           }}
+                          className="col-span-2"
+                          Icon={(props) => <SearchIcon {...props} className={cn('w-4 h-4')} />}
+                          textHelper={isUser ? `Email sudah terdaftar di sistem sebagai ${selectedUser?.source?.toLowerCase()}` : ''}
                         />
                         <SmartTextField
-                          name="fullName"
+                          name="name"
                           label="Nama Lengkap"
                           required
                           validation={{
@@ -302,7 +388,7 @@ export default function MemberRegistration() {
                       <div className="grid grid-cols-2 gap-2">
                         <h3 className="col-span-2 text-lg font-semibold mb-4 text-primary">Latar Belakang</h3>
                         <SmartSelectSingle
-                          name="segmentasi"
+                          name="segment"
                           button={{
                             label: "Segmentasi",
                             props: {
@@ -313,29 +399,43 @@ export default function MemberRegistration() {
                             options: segmentasiOptions.map((item) => ({
                               value: item.id,
                               label: item.name,
-                            })),
+                            }))
                           }}
-                          className="col-span-1"
+                          className=""
                         />
                         <SmartTextField
-                          name="instansi"
-                          label="Instansi"
-                          required
-                          validation={{
-                            required: true,
-                          }}
-                          className="col-span-1 mb-4"
+                          name="institution"
+                          label="Instansi/Institusi"
+                          className="mb-4"
                           fullwidth
                           inputProps={{
-                            placeholder: "Masukkan nama instansi",
+                            placeholder: "Masukkan nama instansi/institusi",
                           }}
                         />
-                        <SmartMultiSelect
-                          name="interest"
-                          label="Pilih minat"
-                          validation={{
-                            required: true,
+
+                        <SmartTextField
+                          name="studentId"
+                          label="NIM (Nomor Induk Mahasiswa)"
+                          className="mb-4"
+                          fullwidth
+                          inputProps={{
+                            placeholder: "Masukkan Nomor Induk Mahasiswa",
                           }}
+                        />
+
+                        <SmartTextField
+                          name="degree"
+                          label="Program Studi"
+                          className="mb-4"
+                          fullwidth
+                          inputProps={{
+                            placeholder: "Masukkan program studi Anda",
+                          }}
+                        />
+
+                        <SmartMultiSelect
+                          name="interestAreas"
+                          label="Pilih minat"
                           className="col-span-2"
                           options={interestOptions.map((item) => ({
                             value: item.id,
@@ -344,49 +444,42 @@ export default function MemberRegistration() {
                           commandProps={{
                             className: "col-span-2",
                           }}
-                          
                         />
                       </div>
                     </Fragment>
                   )}
-                  {/* Step 2: Package Selection */}
+                  {/* Step 2: Bootcamp Selection */}
                   {step === 2 && (
                     <div className="grid grid-cols-1 gap-2">
-                      <h3 className="text-lg font-semibold mb-4 text-primary">Pilih Paket Member</h3>
+                      <h3 className="text-lg font-semibold mb-4 text-primary">Pilih Keanggotaan</h3>
                       <div className="grid gap-4">
-                        {packageOptions.map((pack) => (
+                        {membershipPackages && membershipPackages?.length > 0 && membershipPackages.map((item, index) => (
+                        console.log({ item }, 'item'),
                           <div
-                            key={pack.id}
+                            key={item.id || index}
                             className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                              dataForm.package === pack.id
+                              dataForm.membershipPackage === item.id
                                 ? "border-primary/30 bg-primary text-white"
                                 : "border-gray-200 hover:border-primary"
                             }`}
-                            onClick={() => handleInputChange("package", pack.id)}
+                            onClick={() => handleInputChange("membershipPackage", item.id)}
                           >
                             <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-semibold text-lg">{pack.name}</h4>
-                                <div className={cn("flex flex-col md:flex-row items-start md:items-center gap-4 mt-2 text-sm text-muted-foreground", dataForm.package === pack.id && "text-white")}>
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="w-4 h-4" />
-                                    {pack.duration}
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Users className="w-4 h-4" />
-                                    Kelas kecil
-                                  </div>
+                              <div className="flex flex-col gap-2">
+                                <h4 className="font-semibold text-lg">{item.name}</h4>
+                                <div className={cn("text-xs text-muted-foreground", dataForm.membershipPackage === item.id && "text-white")}>{item.description ? truncateString(item.description, 30) : '-'}</div>
+                                <div className={cn("flex flex-col md:flex-row items-start md:items-center gap-4 text-xs text-muted-foreground", dataForm.membershipPackage === item.id && "text-white")}> 
                                   <div className="flex items-center gap-1">
                                     <Award className="w-4 h-4" />
-                                    Sertifikat
+                                    {item.description ? item.description : '-'}
                                   </div>
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className={cn("text-2xl font-bold text-primary", dataForm.package === pack.id && "text-white")}>
-                                  Rp {pack.price.toLocaleString("id-ID")}
+                                <div className={cn("text-2xl font-bold text-primary", dataForm.membershipPackage === item.id && "text-white")}>
+                                  Rp {item.price.toLocaleString("id-ID") || '0'}
                                 </div>
-                                <div className={cn("text-sm text-muted-foreground", dataForm.package === pack.id && "text-white")}>Total biaya</div>
+                                <div className={cn("text-sm text-muted-foreground", dataForm.membershipPackage === item.id && "text-white")}>Total biaya</div>
                               </div>
                             </div>
                           </div>
@@ -404,7 +497,7 @@ export default function MemberRegistration() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Nama:</span>
                             <span className="font-medium">
-                              {dataForm.fullName}
+                              {dataForm.name}
                             </span>
                           </div>
                           <div className="flex justify-between">
@@ -412,14 +505,14 @@ export default function MemberRegistration() {
                             <span className="font-medium">{dataForm.email}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Program:</span>
+                            <span className="text-gray-600">Keanggotaan:</span>
                             <span className="font-medium">{selectedPackage?.name}</span>
                           </div>
                           <Separator />
                           <div className="flex justify-between text-lg font-semibold">
                             <span>Total Biaya:</span>
                             <span className="text-primary">
-                              Rp {selectedPackage?.price.toLocaleString("id-ID")}
+                              Rp {selectedPackage?.price.toLocaleString("id-ID") || '0'}
                             </span>
                           </div>
                         </div>
@@ -465,8 +558,8 @@ export default function MemberRegistration() {
                     ) : (
                       <Button
                         type="button"
-                        // onClick={handleSubmit(onSubmitPayment)}
-                        onClick={handleSubmit(handleCreatQRCode)}
+                        onClick={handleSubmit(onSubmitNewPayment)}
+                        // onClick={handleSubmit(handleCreatQRCode)}
                         disabled={isProcessing || !isValid}
                         className={cn("px-8 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed")}
                       >
@@ -487,7 +580,7 @@ export default function MemberRegistration() {
                   <CardTitle className="text-xl text-primary">Program Terpilih</CardTitle>
                   <Button
                     className="h-full w-6 p-1 hover:cursor-pointer"
-                    onClick={() => handleInputChange("package", "")}
+                    onClick={() => handleInputChange("membershipPackage", "")}
                     variant="outline"
                     type="button"
                   >
@@ -498,22 +591,13 @@ export default function MemberRegistration() {
                   <h4 className="font-semibold text-lg mb-2">{selectedPackage.name}</h4>
                   <div className="space-y-2 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      Durasi: {selectedPackage.duration}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Maksimal 15 peserta per kelas
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Award className="w-4 h-4" />
-                      Sertifikat resmi
+                      {selectedPackage.description ? selectedPackage.description : '-'}
                     </div>
                   </div>
                   <Separator className="my-4" />
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">
-                      Rp {selectedPackage.price.toLocaleString("id-ID")}
+                      Rp {selectedPackage.price.toLocaleString("id-ID") || '0'}
                     </div>
                     <div className="text-sm text-gray-500">Total Biaya Pendaftaran</div>
                   </div>

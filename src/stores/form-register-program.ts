@@ -24,6 +24,7 @@ export interface FormRegistrationData {
   name: string;
   segment: string;
   institution: string;
+  // program
   programPackage: string;
   tokenPayment: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

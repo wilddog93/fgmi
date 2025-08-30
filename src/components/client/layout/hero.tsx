@@ -3,8 +3,8 @@ import React, { useRef } from 'react';
 import AnimatedBackground from './animate-background';
 import { ArrowRight, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
-import PlatformDemo from './hero/platform-demo';
-import StatsSection from './hero/stats-section';
+import PlatformDemo from '../templates/hero/platform-demo';
+import StatsSection from '../templates/hero/stats-section';
 import Link from 'next/link';
 
 const Hero = () => {
