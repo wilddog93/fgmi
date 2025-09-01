@@ -48,7 +48,7 @@ const TextField = ({
       ? 'right-9'
       : showClearButton || showCircleAlert
       ? 'right-6'
-      : 'right-3';
+      : 'right-0';
   const circleAlertPosition = showClearButton ? 'right-6' : 'right-3';
   return (
     <div
