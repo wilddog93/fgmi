@@ -191,7 +191,7 @@ export default function BootcampRegistration() {
     // console.log({ form: data, programs: selectedProgram }, 'form data');
     setIsProcessing(true);
     try {
-      const response = await axiosInstance.post('/payment/checkout/program/snap',
+      const response = await axiosInstance.post('/payment/checkout/program/ipaymu',
         {
           programId: selectedProgram.id,
           name: data.name,
@@ -199,18 +199,19 @@ export default function BootcampRegistration() {
           phone: data.phone,
           segment: data.segment,
           institution: data.institution,
-          method: "QRIS",
+          // method: "",
         },
       )
-
+      console.log({ response }, 'response');
       if (response.status !== 200 && response.status !== 201) {
         const text = response.data;
         throw new Error(`API Error: ${text}`);
       }
       const result = await response.data;
       // by snap
-      router.replace(`/register/program/payment?order_id=${result?.orderId}&token=${result?.midtrans?.token}&payment_type=snap`);
-      setDataForm({ ...data, tokenPayment: result?.midtrans?.token });
+      console.log({ result }, 'result');
+      // router.replace(`/register/program/payment?order_id=${result?.orderId}&token=${result?.midtrans?.token}&payment_type=snap`);
+      // setDataForm({ ...data, tokenPayment: result?.midtrans?.token });
       // by gopay coreApi
       // router.replace(`/register/program/payment?order_id=${result?.midtrans?.order_id}&payment_type=gopay`);
       // setDataForm({ ...data, recordPayment: result?.midtrans });
