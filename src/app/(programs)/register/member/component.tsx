@@ -200,21 +200,21 @@ export default function MemberRegistration() {
     if (!selectedPackage) return;
     // console.log({ form: data, programs: selectedPackage }, 'form data');
     setIsProcessing(true);
+    const body = {
+      membershipPackageId: selectedPackage.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      segment: data.segment,
+      studentId: data.studentId,
+      degree: data.degree,
+      institution: data.institution,
+      interestAreas: data.interestAreas?.map((item) => item.value) || [],
+      method: "QRIS",
+    }
+    console.log(body, 'body');
     try {
-      const response = await axiosInstance.post('/payment/checkout/member/ipaymu',
-        {
-          membershipPackageId: selectedPackage.id,
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          segment: data.segment,
-          studentId: data.studentId,
-          degree: data.degree,
-          institution: data.institution,
-          interestAreas: data.interestAreas,
-          method: "QRIS",
-        },
-      )
+      const response = await axiosInstance.post('/payment/checkout/member/ipaymu', body)
 
       if (response.status !== 200 && response.status !== 201) {
         const text = response.data;

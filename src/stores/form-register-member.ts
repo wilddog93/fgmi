@@ -1,3 +1,4 @@
+import { Option } from "@/lib/types/global";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -26,7 +27,7 @@ export interface FormRegistrationData {
   institution: string;
   studentId: string;
   degree: string;
-  interestAreas: string[];
+  interestAreas: Option[];
   membershipPackage: string;
   tokenPayment: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
