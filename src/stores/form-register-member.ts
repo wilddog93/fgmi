@@ -56,7 +56,7 @@ const initialDataForm: FormRegistrationData = {
   recordPayment: undefined,
 };
 
-export const useRegistrationForm = create(
+export const useRegistrationFormMember = create(
   persist<UseFormRegistrationStore>(
     (set, get) => ({
       step: 1,

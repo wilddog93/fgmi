@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Alert } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
 
-import { FormRegistrationData, useRegistrationForm } from "../../../../stores/form-register-member"
+import { FormRegistrationData, useRegistrationFormMember } from "../../../../stores/form-register-member"
 
 import SmartForm from "@/components/client/molecule/form/smart-form"
 import SmartTextField from "@/components/client/molecule/form/smart-textfield"
@@ -42,7 +42,7 @@ const segmentasiOptions = [
 export default function MemberRegistration() {
   const APIUrl = process.env.NEXT_PUBLIC_API_URL! || 'http://localhost:4001/v1'
   const router = useRouter();
-  const { step, dataForm, setStep, setDataForm, reset } = useRegistrationForm();
+  const { step, dataForm, setStep, setDataForm, reset } = useRegistrationFormMember();
   const [membershipPackages, setMembershipPackages] = useState<MembershipPackage[]>();
 
   const axiosInstance = axios.create({
