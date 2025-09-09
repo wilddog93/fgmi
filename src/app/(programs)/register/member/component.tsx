@@ -212,7 +212,6 @@ export default function MemberRegistration() {
       interestAreas: data.interestAreas?.map((item) => item.value) || [],
       method: "QRIS",
     }
-    console.log(body, 'body');
     try {
       const response = await axiosInstance.post('/payment/checkout/member/ipaymu', body)
 
