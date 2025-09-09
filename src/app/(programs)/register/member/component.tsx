@@ -201,7 +201,7 @@ export default function MemberRegistration() {
     // console.log({ form: data, programs: selectedPackage }, 'form data');
     setIsProcessing(true);
     try {
-      const response = await axiosInstance.post('/payment/checkout/member/snap',
+      const response = await axiosInstance.post('/payment/checkout/member/ipaymu',
         {
           membershipPackageId: selectedPackage.id,
           name: data.name,
@@ -222,11 +222,14 @@ export default function MemberRegistration() {
       }
       const result = await response.data;
       // by snap
-      router.replace(`/register/member/payment?order_id=${result?.orderId}&token=${result?.midtrans?.token}&payment_type=snap`);
-      setDataForm({ ...data, tokenPayment: result?.midtrans?.token });
+      // router.replace(`/register/member/payment?order_id=${result?.orderId}&token=${result?.midtrans?.token}&payment_type=snap`);
+      // setDataForm({ ...data, tokenPayment: result?.midtrans?.token });
       // by gopay coreApi
       // router.replace(`/register/program/payment?order_id=${result?.midtrans?.order_id}&payment_type=gopay`);
-      // setDataForm({ ...data, recordPayment: result?.midtrans });
+      setDataForm({ ...data, recordPayment: result?.ipaymu });
+      router.push(result?.ipaymu?.Url, {
+        scroll: false,
+      });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (errors: any) {

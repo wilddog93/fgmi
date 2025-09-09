@@ -209,12 +209,16 @@ export default function BootcampRegistration() {
       }
       const result = await response.data;
       // by snap
-      console.log({ result }, 'result');
+      console.log({ result: result?.ipaymu }, 'result');
       // router.replace(`/register/program/payment?order_id=${result?.orderId}&token=${result?.midtrans?.token}&payment_type=snap`);
       // setDataForm({ ...data, tokenPayment: result?.midtrans?.token });
       // by gopay coreApi
       // router.replace(`/register/program/payment?order_id=${result?.midtrans?.order_id}&payment_type=gopay`);
-      // setDataForm({ ...data, recordPayment: result?.midtrans });
+      setDataForm({ ...data, recordPayment: result?.ipaymu });
+      router.push(result?.ipaymu?.Url, {
+        scroll: false,
+      });
+      // window.open(result?.ipaymu?.Url, '_blank');
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (errors: any) {
