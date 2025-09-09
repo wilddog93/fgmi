@@ -12,7 +12,6 @@ type Props = {
 
 const PaymentPage: React.FC<Props> = async({ searchParams }) => {
   const { status, payment_type } = await searchParams;
-  console.log({ status, payment_type }, 'status');
   if(status === 'berhasil' || status === 'success') {
     return <PaymentSuccess payment_type={payment_type} />;
   }
