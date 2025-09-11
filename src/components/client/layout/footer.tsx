@@ -58,6 +58,17 @@ const Footer: FC<FooterProps> = ({ className, ...props }) => {
               </Link>
             ))}
           </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className='flex gap-3'
+          >
+            <Link className='hover:underline text-sm' href="/about-us/faqs">FAQs</Link>
+            <Link className='hover:underline text-sm' href="/about-us/terms-and-conditions">Terms & Conditions</Link>
+            <Link className='hover:underline text-sm' href="/about-us/refund-policy">Refund Policy</Link>
+          </motion.div>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

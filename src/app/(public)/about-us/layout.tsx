@@ -2,13 +2,11 @@
 
 import Footer from "@/components/client/layout/footer";
 import Navbar from "@/components/client/layout/Navbar";
-import Hero from "@/components/client/layout/hero";
 import { useEffect } from "react";
 
 
 
-export default function Home() {
-
+export default function LayoutAboutUs({ children }: React.PropsWithChildren) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -34,16 +32,7 @@ export default function Home() {
 
   return (
     <div className="w-full overflow-hidden font-sans min-h-screen bg-[#E2F1FC]">
-      <div className="fixed w-full z-50">
-        <Navbar />
-        {/* <NavMenu /> */}
-      </div>
-
-      <main className="h-full w-full flex flex-col gap-[32px] items-center justify-center pt-20">
-        <Hero />
-      </main>
-
-      {/* footer */}
+      {children}
       <Footer />
     </div>
   );
