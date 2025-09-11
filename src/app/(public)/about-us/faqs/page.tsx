@@ -299,7 +299,7 @@ export default function FAQPage() {
           </Card>
 
           {/* Administration Section */}
-          <Card id="administration" className="scroll-mt-8">
+          <Card id="administrations" className="scroll-mt-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 <FaCogs className="h-6 w-6 text-primary" />
